@@ -1,6 +1,6 @@
 node_modules
 # Bỏ qua file môi trường gốc
-.env
+backend/.env
 
 # Bỏ qua chìa khóa giải mã (TUYỆT ĐỐI KHÔNG UP FILE NÀY LÊN GITHUB)
 backend/security/secret.key
