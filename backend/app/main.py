@@ -2,10 +2,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import router mới
-from .api.v1.endpoints import crud_items, functions, lists, crud_students # <--- Thêm crud_students
+# Import các router
+from .api.v1.endpoints import auth, crud_items, crud_students, crud_users, functions, lists, crud_assignments
 
-app = FastAPI(title="BK-LMS Backend API")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,16 +15,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Router Lớp học
+# Đăng ký Routers
+app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
 app.include_router(crud_items.router, prefix="/api/v1", tags=["Classes"])
-
-# 2. Router Sinh viên (MỚI)
-app.include_router(crud_students.router, prefix="/api/v1", tags=["Students"]) # <--- Đăng ký tại đây
-
-# 3. Router Báo cáo & Tiện ích
+app.include_router(crud_students.router, prefix="/api/v1", tags=["Students"])
+app.include_router(crud_users.router, prefix="/api/v1", tags=["Users"]) # <--- Mới thêm
 app.include_router(functions.router, prefix="/api/v1", tags=["Reports"])
-app.include_router(lists.router, prefix="/api/v1", tags=["Common Lists"])
+app.include_router(lists.router, prefix="/api/v1", tags=["Common"])
+app.include_router(crud_assignments.router, prefix="/api/v1", tags=["Assignments"])
 
 @app.get("/")
-def read_root():
-    return {"message": "BK-LMS Backend is running!"}
+def root():
+    return {"message": "BK-LMS API Running"}

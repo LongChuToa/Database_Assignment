@@ -1,29 +1,70 @@
-// src/frontend/src/pages/LoginPage.js
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const LoginPage = ({ onLogin }) => {
-  // Dữ liệu giả lập cho các vai trò (Hardcode để demo)
-  const mockUsers = {
-    admin: {
-      id: 'ADMIN01',
-      name: 'Quản Trị Viên Hệ Thống',
+const LoginPage = ({ onLogin, onGoToRegister }) => {
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // --- CẤU HÌNH TÀI KHOẢN DEBUG (HARDCODED) ---
+  const DEBUG_ACCOUNTS = {
+    'admin': {
+      id: 9999,
+      username: 'admin',
+      name: 'Quản Trị Viên (Debug)',
       role: 'ADMIN',
       email: 'admin@hcmut.edu.vn',
       avatar: '🛡️'
     },
-    lecturer: {
-      id: 'GV001',
-      name: 'ThS. Dương Huỳnh Anh Đức',
+    'gv': {
+      id: 8888,
+      username: 'gv',
+      name: 'Giảng Viên Test (Debug)',
       role: 'LECTURER',
-      email: 'dhaduc@hcmut.edu.vn',
+      email: 'gv@hcmut.edu.vn',
       avatar: '👨‍🏫'
     },
-    student: {
-      id: '2310744',
-      name: 'Trần Phương Đỉnh',
+    'sv': {
+      id: 7777,
+      username: 'sv',
+      name: 'Sinh Viên Test (Debug)',
       role: 'STUDENT',
-      email: 'dinh.tran@hcmut.edu.vn',
-      avatar: '🎓'
+      email: 'sv@hcmut.edu.vn',
+      avatar: '🎓',
+      // Dữ liệu giả cho SV để test trang chỉnh sửa
+      className: 'L01',
+      program: 'Chính quy',
+      cohort: '2023'
+    }
+  };
+  // ---------------------------------------------
+
+  const handleChange = (e) => setCredentials({ ...credentials, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    // 1. KIỂM TRA HARDCODE TRƯỚC (Bypass Logic)
+    // Mật khẩu chung cho debug là "123"
+    if (DEBUG_ACCOUNTS[credentials.username] && credentials.password === '123') {
+      setTimeout(() => {
+        alert(`🔓 Đang vào chế độ Debug: ${credentials.username.toUpperCase()}`);
+        onLogin(DEBUG_ACCOUNTS[credentials.username]);
+        setLoading(false);
+      }, 500); // Giả vờ load 0.5s
+      return;
+    }
+
+    // 2. NẾU KHÔNG PHẢI HARDCODE -> GỌI API THẬT
+    try {
+      const res = await axios.post('http://localhost:8000/api/v1/auth/login', credentials);
+      onLogin(res.data);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Đăng nhập thất bại (Sai tên hoặc mật khẩu)");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,34 +72,45 @@ const LoginPage = ({ onLogin }) => {
     <div className="login-container">
       <div className="login-card">
         <div className="brand-logo">BK-LMS</div>
-        <h3>Hệ Thống Quản Lý Học Tập</h3>
-        <p style={{color: '#666', marginBottom: '30px'}}>
-          Vui lòng chọn vai trò để đăng nhập (Demo Mode)
-        </p>
+        <h3>Đăng Nhập Hệ Thống</h3>
+        
+        {/* Hint cho Developer */}
+        <div style={{background: '#fff3cd', color: '#856404', padding: '10px', fontSize: '12px', marginBottom: '15px', borderRadius: '4px', textAlign: 'left'}}>
+          <strong>🛠️ Debug Mode (Mật khẩu: 123):</strong><br/>
+          - Admin: <code>admin</code><br/>
+          - Giảng viên: <code>gv</code><br/>
+          - Sinh viên: <code>sv</code>
+        </div>
 
-        <div className="login-options">
-          <button className="btn-login admin" onClick={() => onLogin(mockUsers.admin)}>
-            <div className="icon">🛡️</div>
-            <div>
-              <strong>Quản Trị Viên</strong>
-              <span>Toàn quyền hệ thống</span>
-            </div>
+        {error && <div className="alert alert-error">{error}</div>}
+
+        <form onSubmit={handleSubmit} style={{textAlign: 'left', marginTop: '20px'}}>
+          <div className="form-group">
+            <label>Tên đăng nhập:</label>
+            <input 
+              name="username" className="input-control" required 
+              placeholder="Nhập 'admin', 'gv', hoặc 'sv'..."
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label>Mật khẩu:</label>
+            <input 
+              name="password" type="password" className="input-control" required 
+              placeholder="Nhập '123' để test nhanh"
+              onChange={handleChange}
+            />
+          </div>
+          
+          <button type="submit" className="btn btn-primary" style={{width: '100%', marginTop: '10px'}} disabled={loading}>
+            {loading ? 'Đang xác thực...' : 'Đăng Nhập'}
           </button>
+        </form>
 
-          <button className="btn-login lecturer" onClick={() => onLogin(mockUsers.lecturer)}>
-            <div className="icon">👨‍🏫</div>
-            <div>
-              <strong>Giảng Viên</strong>
-              <span>Quản lý lớp & Nhập điểm</span>
-            </div>
-          </button>
-
-          <button className="btn-login student" onClick={() => onLogin(mockUsers.student)}>
-            <div className="icon">🎓</div>
-            <div>
-              <strong>Sinh Viên</strong>
-              <span>Xem lịch & Tra cứu điểm</span>
-            </div>
+        <div style={{marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px'}}>
+          <span style={{color: '#666'}}>Chưa có tài khoản? </span>
+          <button className="btn-link" onClick={onGoToRegister} style={{color: '#034ea2', fontWeight: 'bold', border: 'none', background: 'none', cursor: 'pointer'}}>
+            Đăng ký Sinh viên
           </button>
         </div>
       </div>
