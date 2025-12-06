@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # 1. SQL SERVER (Database riêng cho Docker)
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: btl2_sql_server
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MatKhauManh123! # Mật khẩu cho tài khoản sa
+    ports:
+      - "1433:1433" # Map ra máy thật để bạn kết nối SSMS vào nạp dữ liệu
+    volumes:
+      - sql_data:/var/opt/mssql # Giữ dữ liệu không bị mất khi tắt docker
+
+# 2. BACKEND (Python)
+  backend:
+    build: ./backend
+    container_name: btl2_backend
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      # --- SỬA LẠI ĐÚNG CHUẨN DOCKER ---
+      - DB_SERVER=db               # Tên service của database ở dòng số 4
+      - DB_NAME=lmsdb              # Tên DB bạn muốn dùng
+      - DB_USER=sa                 # User mặc định của Docker SQL luôn là 'sa'
+      - DB_PASSWORD=MatKhauManh123! # Phải khớp với SA_PASSWORD ở trên
+    volumes:
+      - ./backend:/app # Hot-reload code
+
+  # 3. FRONTEND (React)
+  frontend:
+    build: ./frontend
+    container_name: btl2_frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    stdin_open: true
+
+volumes:
+  sql_data:

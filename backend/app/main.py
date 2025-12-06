@@ -5,12 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 # Import các router
 from .api.v1.endpoints import crud_items, functions, lists
 
-from security.decrypt_loader import load_encrypted_env 
-
-# --- NẠP BIẾN MÔI TRƯỜNG MÃ HÓA ---
-load_encrypted_env()
-# -----------------------------------
-
 app = FastAPI(title="BK-LMS Backend API")
 
 # Cấu hình CORS
