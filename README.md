@@ -3,6 +3,8 @@
 **Bài tập lớn số 2 - Môn Hệ Cơ sở Dữ liệu (CO2013)**
 Dự án mô phỏng hệ thống quản lý lớp học, môn học và tính điểm của trường ĐH Bách Khoa, sử dụng kiến trúc Microservices đóng gói bằng Docker.
 
+_(Thanks to Gemini 3, ChatGPT 5.1)_
+
 ---
 
 ## 🛠️ Yêu cầu cài đặt (Prerequisites)
