@@ -1,0 +1,688 @@
+\section{Tạo bảng và dữ liệu mẫu}
+\subsection{Các câu lệnh hiện thực tất cả bảng dữ liệu }
+
+\subsubsection{Tạo bảng KHOA}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `KHOA` (
+	`Ma` INT PRIMARY KEY,
+	`Ten` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci UNIQUE,
+	`Email` VARCHAR(50) UNIQUE,
+	`Nam thanh lap` DATE,
+	`So dien thoai` VARCHAR(50)
+	);	
+\end{lstlisting}
+
+\subsubsection{Tạo bảng TÁC GIẢ TÀI LIỆU}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `TAC GIA TAI LIEU` (
+	`Ma tai lieu` INT,
+	`Ten tac gia` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	PRIMARY KEY(`Ma tai lieu`,`Ten tac gia`)
+	);	
+\end{lstlisting}
+
+\subsubsection{Tạo bảng GIẢNG VIÊN}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `GIANG VIEN` (
+	`Ma EDUMEMBER` INT PRIMARY KEY,
+	`Hoc vi` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Chuc danh` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Linh vuc` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`So nam kinh nghiem` INT,
+	`Ma khoa` INT NOT NULL
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng MÔN HỌC}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `MON HOC` (
+	`Ma` INT PRIMARY KEY,
+	`Ten` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`So tin chi` INT,
+	`Mo ta` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng TL THUỘC VỀ}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `TL THUOC VE` (
+	`Ma tai lieu` INT,
+	`Ten loai tai lieu` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	PRIMARY KEY (`Ma tai lieu`,`Ten loai tai lieu`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng LOẠI TÀI LIỆU}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `LOAI TAI LIEU` (
+	`Ten` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci PRIMARY KEY,
+	`Ten cha` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng HỌC KÌ}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `HOC KI` (
+	`Ten hoc ki` VARCHAR(50) PRIMARY KEY
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng LỚP HỌC}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `LOP HOC` (
+	`Ten hoc ki` VARCHAR(50),
+	`Ma mon hoc` INT,
+	`Ten lop` VARCHAR(50),
+	`Ma giang vien` INT NOT NULL,
+	`Thu` ENUM('2','3','4','5','6','7','CN'),
+	`Gio hoc` TIME,
+	`Dia diem` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	PRIMARY KEY (`Ten hoc ki`, `Ma mon hoc`, `Ten lop`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Tài liệu lớp học}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `Tai lieu lop hoc` (
+	`Ten hoc ki` VARCHAR(50),
+	`Ma mon hoc` INT,
+	`Ten lop` VARCHAR(50),
+	`Ma tai lieu` INT,
+	`Ten` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Mo ta` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	PRIMARY KEY (`Ten hoc ki`, `Ma mon hoc`, `Ten lop`, `Ma tai lieu`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng TLLH THUỘC VỀ}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `TLLH THUOC VE` (
+	`Ten hoc ki` VARCHAR(50),
+	`Ma mon hoc` INT,
+	`Ten lop` VARCHAR(50),
+	`Ma tai lieu lop hoc` INT,
+	`Ten loai tai lieu` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	PRIMARY KEY (`Ten hoc ki`, `Ma mon hoc`, `Ten lop`, `Ma tai lieu lop hoc`, `Ten loai tai lieu`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng HỌC}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `HOC` (
+	`Ma sinh vien` INT,
+	`Ten hoc ki` VARCHAR(50),
+	`Ma mon hoc` INT,
+	`Ten lop` VARCHAR(50),
+	`Diem tong ket` INT,
+	`Ngay dang ki` DATE,
+	`Trang thai hoc` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	PRIMARY KEY (`Ma sinh vien`, `Ten hoc ki`, `Ma mon hoc`, `Ten lop`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng BÀI TẬP}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `BAI TAP` (
+	`Ten hoc ki` VARCHAR(50),
+	`Ma mon hoc` INT,
+	`Ten lop` VARCHAR(50),
+	`Ma bai tap` INT,
+	`Tuy chon` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Hinh thuc lam bai` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Ten bai` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Mo ta` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Thoi gian bat dau` DATE,
+	`Thoi gian ket thuc` DATE,
+	PRIMARY KEY (`Ten hoc ki`, `Ma mon hoc`, `Ten lop`, `Ma bai tap`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng THAM GIA LÀM}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE IF NOT EXISTS `THAM GIA LAM` (
+	`Ma sinh vien` INT,
+	`Ten hoc ki` VARCHAR(50),
+	`Ma mon hoc` INT,
+	`Ten lop` VARCHAR(50),
+	`Ma bai tap` INT,
+	`Thoi gian nop bai` DATETIME,
+	`Diem so` DECIMAL(10,2),
+	PRIMARY KEY (`Ma sinh vien`, `Ten hoc ki`, `Ma mon hoc`, `Ten lop`, `Ma bai tap`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng NGƯỜI DÙNG}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `NGUOI DUNG`(
+	`Ma` INT PRIMARY KEY,
+	Email VARCHAR(50),
+	`Ten dang nhap` VARCHAR(50) not null UNIQUE,
+	`Mat khau` VARCHAR(100) not null,
+	`Ho va ten` VARCHAR(50) character set utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Dia chi` VARCHAR(100) character set utf8mb4 collate utf8mb4_vietnamese_ci
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Thư viện}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Thu vien`(
+	`Ma` INT PRIMARY KEY,
+	`Nam thanh lap` Year
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Số điện thoại thư viện}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `So dien thoai thu vien`(
+	`Ma thu vien` INT,
+	`So dien thoai` VARCHAR(15),
+	PRIMARY KEY (`Ma thu vien`, `So dien thoai`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Tài liệu}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Tai lieu`(
+	`Ma` INT PRIMARY KEY,
+	`Ma thu vien` INT,
+	`Ten` VARCHAR(100) character set utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Ngay xuat ban` DATE
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Gửi tin nhắn}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Gui tin nhan`(
+	`Ma nguoi gui` INT,
+	`Ma nguoi nhan` INT,
+	PRIMARY KEY (`Ma nguoi gui`, `Ma nguoi nhan`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Tin nhắn}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Tin nhan`(
+	`Ma nguoi gui` INT,
+	`Ma nguoi nhan` INT,
+	`Noi dung` TEXT character set utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Thoi gian` DATETIME,
+	PRIMARY KEY (`Ma nguoi gui`, `Ma nguoi nhan`, `Thoi gian`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Số điện thoại người dùng}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `So dien thoai nguoi dung`(
+	`Ma nguoi dung` INT,
+	`So dien thoai` VARCHAR(15),
+	PRIMARY KEY (`Ma nguoi dung`, `So dien thoai`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng ADMIN}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE ADMIN(
+	`Ma nguoi dung` INT PRIMARY KEY,
+	`Cap do quyen` INT,
+	`Trang thai quyen` VARCHAR(50) character set utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Ngay bat dau quan tri` DATE
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Quản lý}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Quan ly`( -- Check total Thu vien
+	`Ma ADMIN` INT,
+	`Ma thu vien` INT,
+	PRIMARY KEY (`Ma ADMIN`, `Ma thu vien`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng EDUMEMBER}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE EDUMEMBER(
+	`Ma nguoi dung` INT PRIMARY KEY,
+	`Ngay tham gia` DATE,
+	`Trang thai hoat dong` BOOLEAN DEFAULT TRUE
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Giám sát}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Giam sat`( -- Check total EduMember
+	`Ma ADMIN` INT,
+	`Ma EDUMEMBER` INT,
+	PRIMARY KEY (`Ma ADMIN`, `Ma EDUMEMBER`)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Sinh viên}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Sinh vien`(             -- Check not null Ma khoa
+	`Ma EDUMEMBER` INT PRIMARY KEY,
+	`Lop` VARCHAR(20) character set utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Chuong trinh` VARCHAR(50) character set utf8mb4 collate utf8mb4_vietnamese_ci,
+	`Nien khoa` YEAR,
+	`Ma khoa` VARCHAR(10)
+	);
+\end{lstlisting}
+
+\subsubsection{Tạo bảng Truy cập}
+\begin{lstlisting}[language=SQL]
+	CREATE TABLE `Truy cap`(
+	`Ma EDUMEMBER` INT,
+	`Ma tai lieu` INT,
+	`Thoi gian` DATETIME,
+	PRIMARY KEY (`Ma EDUMEMBER`, `Ma tai lieu`, `Thoi gian`)
+	);
+\end{lstlistinKhoKho
+	
+\subsection{Thêm dữ liệu vào trong bảng}
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `KHOA` VALUES
+	(1, 'Khoa Khoa hoc va Ky thuat May tinh', 'cs@hcmut.edu.vn', '1995-01-01', '028-12345678'),
+	(2, 'Khoa Co khi', 'me@hcmut.edu.vn', '1980-03-12', '028-23456789'),
+	(3, 'Khoa Dien - Dien tu', 'ee@hcmut.edu.vn', '1975-07-21', '028-34567890'),
+	(4, 'Khoa Hoa hoc', 'chem@hcmut.edu.vn', '1990-11-05', '028-45678901'),
+	(5, 'Khoa Moi truong', 'env@hcmut.edu.vn', '2000-09-15', '028-56789012');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/khoa.png}
+	\caption{Dữ liệu bảng Khoa}
+	\label{fig:placeholder}8
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `TAC GIA TAI LIEU` VALUES
+	(101, 'Nguyen Van A'),
+	(101, 'Tran Thi B'),
+	(102, 'John Smith'),
+	(103, 'Alice Johnson'),
+	(104, 'Le Quoc C'),
+	(105, 'Pham Nhat D');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/tacgiatailieu.png}
+	\caption{Dữ liệu bảng Tác giả tài liệu}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `GIANG VIEN` VALUES
+	(1001, 'Tien si', 'Giang vien chinh', 'Tri tue nhan tao', 10, 1),
+	(1002, 'Thac si', 'Giang vien', 'Khoa hoc may tinh', 5, 1),
+	(1003, 'Tien si', 'Giang vien chinh', 'Dien tu vien thong', 12, 3),
+	(1004, 'Pho Giao su', 'Truong khoa', 'Co khi chinh xac', 20, 2),
+	(1005, 'Tien si', 'Giang vien', 'Moi truong nuoc', 7, 5);
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/giangvien.png}
+	\caption{Dữ liệu bảng Giảng viên}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `MON HOC` VALUES
+	(201, 'Cau truc du lieu va giai thuat', 4, 'Hoc ve CTDL va thuat toan'),
+	(202, 'Lap trinh huong doi tuong', 3, 'OOP Java'),
+	(203, 'Tri tue nhan tao', 3, 'Kien thuc nen tang AI'),
+	(204, 'Dien tu co ban', 3, 'Mach dien can ban'),
+	(205, 'Khoa hoc moi truong', 2, 'Moi truong va sinh thai');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/monhoc.png}
+	\caption{Dữ liệu bảng Môn học}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `TL THUOC VE` VALUES
+	(101, 'Giao trinh'),
+	(101, 'Sach tham khao'),
+	(102, 'Bai bao khoa hoc'),
+	(103, 'Giao trinh'),
+	(104, 'Tai lieu so'),
+	(105, 'Huong dan hoc tap');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/tlthuocve.png}
+	\caption{Dữ liệu bảng TL Thuộc về}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `LOAI TAI LIEU` VALUES
+	('Giao trinh', NULL),
+	('Sach tham khao', 'Giao trinh'),
+	('Bai bao khoa hoc', NULL),
+	('Tai lieu so', NULL),
+	('Huong dan hoc tap', 'Tai lieu so');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/loaitailieu.png}
+	\caption{Dữ liệu bảng Loại tài liệu}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `HOC KI` VALUES
+	('HK1-2023'),
+	('HK2-2023'),
+	('HK1-2024'),
+	('HK2-2024'),
+	('HK1-2025');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/hocki.png}
+	\caption{Dữ liệu bảng Học kì}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `LOP HOC` VALUES
+	('HK1-2023', 201, 'L01', 1001, '2', '07:30:00', 'A101'),
+	('HK1-2023', 201, 'L02', 1002, '4', '09:30:00', 'A102'),
+	('HK1-2023', 202, 'L01', 1001, '3', '13:00:00', 'B201'),
+	('HK2-2023', 203, 'L01', 1003, '5', '08:00:00', 'C301'),
+	('HK1-2024', 205, 'L01', 1005, '6', '10:00:00', 'D401');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/lophoc.png}
+	\caption{Dữ liệu bảng Lớp học}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `Tai lieu lop hoc` VALUES
+	('HK1-2023', 201, 'L01', 1, 'Slide chuong 1', 'Gioi thieu mon hoc'),
+	('HK1-2023', 201, 'L01', 2, 'Slide chuong 2', 'Cau truc cay'),
+	('HK1-2023', 202, 'L01', 1, 'Bai giang OOP', 'Tong quan OOP'),
+	('HK2-2023', 203, 'L01', 1, 'Tai lieu AI', 'Gioi thieu AI'),
+	('HK1-2024', 205, 'L01', 1, 'Moi truong co ban', 'Khai niem nen tang');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/tailieulophoc.png}
+	\caption{Dữ liệu bảng Tài liệu lớp học}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `TLLH THUOC VE` VALUES
+	('HK1-2023', 201, 'L01', 1, 'Giao trinh'),
+	('HK1-2023', 201, 'L01', 1, 'Tai lieu so'),
+	('HK1-2023', 201, 'L01', 2, 'Giao trinh'),
+	('HK1-2023', 202, 'L01', 1, 'Huong dan hoc tap'),
+	('HK2-2023', 203, 'L01', 1, 'Giao trinh');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/tllhthuocve.png}
+	\caption{Dữ liệu bảng TLLH thuộc về}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `HOC` VALUES
+	(3001, 'HK1-2023', 201, 'L01', 85, '2023-01-10', 'Dang hoc'),
+	(3002, 'HK1-2023', 201, 'L01', 90, '2023-01-11', 'Hoan thanh'),
+	(3001, 'HK1-2023', 202, 'L01', 88, '2023-01-12', 'Dang hoc'),
+	(3003, 'HK2-2023', 203, 'L01', 92, '2023-08-01', 'Hoan thanh'),
+	(3004, 'HK1-2024', 205, 'L01', 80, '2024-01-15', 'Dang hoc');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/hoc.png}
+	\caption{Dữ liệu bảng học}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `BAI TAP` VALUES
+	('HK1-2023', 201, 'L01', 1, 'Bat buoc', 'Lam tai nha', 'BT1 - Mang', 'Mang va thao tac', '2023-01-15', '2023-01-25'),
+	('HK1-2023', 201, 'L01', 2, 'Tuy chon', 'Trac nghiem', 'BT2 - Danh sach', 'Linked List', '2023-01-20', '2023-01-30'),
+	('HK1-2023', 202, 'L01', 1, 'Bat buoc', 'Bai tu luan', 'BT1 - Class', 'Lap trinh lop', '2023-01-18', '2023-01-28'),
+	('HK2-2023', 203, 'L01', 1, 'Bat buoc', 'Online', 'BT1 - AI co ban', 'Gioi thieu AI', '2023-08-10', '2023-08-20'),
+	('HK1-2024', 205, 'L01', 1, 'Tuy chon', 'Lam tai lop', 'BT1 - Sinh thai', 'Khai niem sinh thai', '2024-01-20', '2024-01-25');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/baitap.png}
+	\caption{Dữ liệu bảng bài tập}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	INSERT INTO `THAM GIA LAM` VALUES
+	(3001, 'HK1-2023', 201, 'L01', 1, '2023-01-22 20:00:00', 9.0),
+	(3002, 'HK1-2023', 201, 'L01', 1, '2023-01-23 21:00:00', 8.5),
+	(3001, 'HK1-2023', 201, 'L01', 2, '2023-01-28 19:30:00', 9.5),
+	(3003, 'HK2-2023', 203, 'L01', 1, '2023-08-18 17:00:00', 9.0),
+	(3004, 'HK1-2024', 205, 'L01', 1, '2024-01-23 18:00:00', 8.0);
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/thamgialam.png}
+	\caption{Dữ liệu bảng tham gia làm}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- NGUOI DUNG
+	INSERT INTO `NGUOI DUNG` VALUES
+	(1001, 'gv1@gmail.com', 'gv1', '$2b$12$kbGYbltmh6lAor4iVfIvaeeT0tV0L8Zg.q52ILbkuO7FWXFf.9sp.',  'Nguyen Hai Long',     'Ha Noi'),
+	(1002, 'gv2@gmail.com', 'gv2', '$2b$12$Z/I/0JE6RomlQRW3Z64rJumUfi1v34NsjfQGad7q.EnjCelk.c4mK', 'Tran Thu Hang',       'Da Nang'),
+	(1003, 'gv3@gmail.com', 'gv3', '$2b$12$RIU8la355yxYA1Jw9KMtYeSLW9ULMOdblQpyCtF2/ltp3gZe1Ug5m', 'Le Nhat Quang',       'TP.HCM'),
+	(1004, 'gv4@gmail.com', 'gv4', '$2b$12$BIJ5iSTIyzkcVpIi2eHSnOEpIEluzwo4fXj7wQU/gcA.FgB7Q1Ht.', 'Pham Thao Vy',        'Hue'),
+	(1005, 'gv5@gmail.com', 'gv5', '$2b$12$6dK1Oz9EFVSIfaCXp8nNGOVkg.cI8D3CZxnlXCo1Z8X66j7ErWmr6', 'Vo Minh Khanh',       'Can Tho'),
+	(3001, 'sv1@gmail.com', 'sv1', '$2b$12$aUSB2Xixqj0LLz33F4cUAu3Y2IWLx01RTd7jym2FTcOYfO9wztFXS', 'Nguyen Ngoc Tram',    'Ha Noi'),
+	(3002, 'sv2@gmail.com', 'sv2', '$2b$12$uwZHiRXf5N3kLPjuFTwXKuhYwsvL.WoVi44441bBOE1ptQpoNtxYa', 'Dang Huu Phat',       'Da Nang'),
+	(3003, 'sv3@gmail.com', 'sv3', '$2b$12$.8Dg7kaZbMMFjQ5SLEsPmes.UqeCwBNNthgfYEwfFG6wnf1KqIlXS', 'Tran Ngoc Bao',       'TP.HCM'),
+	(3004, 'sv4@gmail.com', 'sv4', '$2b$12$Qdx5jiZcgfCooXUYOw2IvOgq9nPazdDx1XqHC5fjRN2dUynkIRLrW', 'Mai Anh Thu',         'Hue'),
+	(3005, 'sv5@gmail.com', 'sv5', '$2b$12$axsj0ySbaRg8zgK.A5DNz.BAYl6/KkhCumsXnJQBHx13bMFlR/ihW', 'Hoang Tan Loc',       'Can Tho'),
+	(2001, 'admin1@system.com', 'admin1', '$2b$12$U4b4/QyH8nUjz6R0Qa5JMei0lT0myPIc7Vv5gE/.8r1SK6ME0sl5W', 'Dang Hoai Nam', 'Ha Noi'),
+	(2002, 'admin2@system.com', 'admin2', '$2b$12$eX8RlgWJfzIwEc3gJK2kDuE7CrH5kPxnH6yU3N5KjPyZlf5s1Qpfe', 'Vu Thu Hang', 'Da Nang'),
+	(2003, 'admin3@system.com', 'admin3', '$2b$12$wXyq7WySxrQ/NPd6RMa1KuPJwr8v.UQ8bGV5dq0JzX9dN4WB8Q3eO', 'Ngo Bao Khanh', 'TP.HCM'),
+	(2004, 'admin4@system.com', 'admin4', '$2b$12$sx9IyTtJR3aR5z4BrGk2rOsYyS5iR1bZgkqtuNqL8Nf2sKxKAJF9G', 'Phan Tuong Vy', 'Hai Phong'),
+	(2005, 'admin5@system.com', 'admin5', '$2b$12$H8eGhm1hYwVbU7y7kJtRKuWQm2Jt39TJSxOj1XgM7mLWbrVQZdRgK', 'Bui Minh Hai', 'Can Tho');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/nguoidung.png}
+	\caption{Dữ liệu bảng người dùng}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- THU VIEN
+	INSERT INTO `Thu vien` VALUES (10, 1999), (11, 2002), (12, 2005), (13, 2010), (14, 2020);
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/thuvien.png}
+	\caption{Dữ liệu bảng thư viện}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- SO DIEN THOAI THU VIEN
+	INSERT INTO `So dien thoai thu vien` VALUES
+	(10, '0241000001'), (11, '0241000002'), (12, '0241000003'), (13, '0241000004'), (14, '0241000005');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/sodienthoaithuvien.png}
+	\caption{Dữ liệu bảng số điện thoại người dùng}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- TAI LIEU
+	INSERT INTO `Tai lieu` VALUES
+	(101, 10, 'Thuat toan A', '2018-01-10'),
+	(102, 11, 'Mang may tinh B', '2019-02-15'),
+	(103, 12, 'Co so du lieu C', '2020-03-20'),
+	(104, 13, 'Lap trinh D', '2021-04-25'),
+	(105, 14, 'An ninh mang E', '2022-05-30');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/tailieu.png}
+	\caption{Dữ liệu bảng tài liệu}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- GUI TIN NHAN
+	INSERT INTO `Gui tin nhan` VALUES
+	(3001, 3002), (3002, 3003), (3003, 3004), (3004, 3005), (3005, 3001);
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/guitinnhan.png}
+	\caption{Dữ liệu bảng gửi tin nhắn}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- TIN NHAN
+	INSERT INTO `Tin nhan` VALUES
+	(3001, 3002, 'Hello', '2024-01-10 10:00:00'),
+	(3002, 3003, 'Ban sao roi?', '2024-01-10 10:05:00'),
+	(3003, 3004, 'Di hoc chua?', '2024-01-10 10:10:00'),
+	(3004, 3005, 'Co bai tap khong?', '2024-01-10 10:15:00'),
+	(3005, 3001, 'Di ngu di', '2024-01-10 10:20:00');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/tinnhan.png}
+	\caption{Dữ liệu bảng tin nhắn}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- SO DIEN THOAI NGUOI DUNG
+	INSERT INTO `So dien thoai nguoi dung` VALUES
+	(1001, '0901000001'), (1002, '0901000002'), (1003, '0901000003'), (1004, '0901000004'), (1005, '0901000005'),
+	(2001, '0901000006'), (2002, '0901000007'), (2003, '0901000008'), (2004, '0901000009'), (2005, '0901000010'),
+	(3001, '0901000011'), (3002, '0901000012'), (3003, '0901000013'), (3004, '0901000014'), (3005, '0901000015');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/sodienthoainguoidung.png}
+	\caption{Dữ liệu bảng số điện thoại người dùng}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- ADMIN
+	INSERT INTO ADMIN VALUES
+	(2001, 1, 'Hoat dong', '2020-01-01'), (2002, 1, 'Hoat dong', '2021-02-02'), (2003, 2, 'Tam khoa', '2022-03-03'), (2004, 2, 'Hoat dong', '2023-04-04'), (2005, 3, 'Hoat dong', '2024-05-05');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/admin.png}
+	\caption{Dữ liệu bảng ADMIN}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- QUAN LY
+	INSERT INTO `Quan ly` VALUES (2001, 10), (2002, 11), (2003, 12), (2004, 13), (2005, 14);
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/quanly.png}
+	\caption{Dữ liệu bảng quản lý}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- EDUMEMBER
+	INSERT INTO EDUMEMBER VALUES
+	(1001, '2020-01-01', TRUE), (1002, '2021-02-02', TRUE), (1003, '2022-03-03', FALSE), (1004, '2023-04-04', TRUE), (1005, '2024-05-05', TRUE),
+	(3001, '2020-02-01', TRUE), (3002, '2021-03-02', TRUE), (3003, '2022-04-03', FALSE), (3004, '2023-05-04', TRUE), (3005, '2024-06-05', TRUE);
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/edumember.png}
+	\caption{Dữ liệu bảng EDUMEMBER}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+	-- GIAM SAT
+	INSERT INTO `Giam sat` VALUES (2001, 1002), (2002, 1003), (2003, 1004), (2004, 3005), (2005, 3001);
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/giamsat.png}
+	\caption{Dữ liệu bảng giám sát}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]	
+	-- SINH VIEN
+	INSERT INTO `Sinh vien` VALUES
+	(3001, 'CLC1', 'Chat luong cao', 2020, '1'),
+	(3002, 'DT1', 'Dai tra', 2021, '2'),
+	(3003, 'DT2', 'Dai tra', 2022, '3'),
+	(3004, 'CLC2', 'Chat luong cao', 2023, '4'),
+	(3005, 'DT3', 'Dai tra', 2024, '5');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/sinhvien.png}
+	\caption{Dữ liệu bảng sinh viên}
+	\label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]	
+	-- TRUY CAP
+	INSERT INTO `Truy cap` VALUES
+	(3001, 101, '2024-05-10 08:00:00'),
+	(3002, 102, '2024-05-10 08:10:00'),
+	(3003, 103, '2024-05-10 08:20:00'),
+	(3004, 104, '2024-05-10 08:30:00'),
+	(3005, 105, '2024-05-10 08:40:00');
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{IMG/1/truycap.png}
+	\caption{Dữ liệu bảng truy cập}
+	\label{fig:placeholder}
+\end{figure}

@@ -1,19 +1,24 @@
 version: '3.8'
 
 services:
-  # 1. SQL SERVER (Database riêng cho Docker)
+  # 1. DATABASE (MySQL 8.0)
   db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: btl2_sql_server
+    image: mysql:8.0
+    container_name: btl2_mysql
+    cap_add:
+      - SYS_NICE  # Tối ưu hiệu năng
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=MatKhauManh123! # Mật khẩu cho tài khoản sa
+      - MYSQL_ROOT_PASSWORD=MatKhauManh123!
+      - MYSQL_DATABASE=lmsdb
     ports:
-      - "1433:1433" # Map ra máy thật để bạn kết nối SSMS vào nạp dữ liệu
+      - "3306:3306" # Cổng mặc định của MySQL
     volumes:
-      - sql_data:/var/opt/mssql # Giữ dữ liệu không bị mất khi tắt docker
+      - mysql_data:/var/lib/mysql
+      # TỰ ĐỘNG CHẠY FILE SQL KHI KHỞI TẠO (Quan trọng)
+      - ./src/database:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
 
-# 2. BACKEND (Python)
+  # 2. BACKEND (Python)
   backend:
     build: ./backend
     container_name: btl2_backend
@@ -22,13 +27,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # --- SỬA LẠI ĐÚNG CHUẨN DOCKER ---
-      - DB_SERVER=db               # Tên service của database ở dòng số 4
-      - DB_NAME=lmsdb              # Tên DB bạn muốn dùng
-      - DB_USER=sa                 # User mặc định của Docker SQL luôn là 'sa'
-      - DB_PASSWORD=MatKhauManh123! # Phải khớp với SA_PASSWORD ở trên
+      - DB_SERVER=db
+      - DB_PORT=3306
+      - DB_NAME=lmsdb
+      - DB_USER=root
+      - DB_PASSWORD=MatKhauManh123!
     volumes:
-      - ./backend:/app # Hot-reload code
+      - ./backend:/app
 
   # 3. FRONTEND (React)
   frontend:
@@ -46,4 +51,4 @@ services:
     stdin_open: true
 
 volumes:
-  sql_data:
+  mysql_data:
