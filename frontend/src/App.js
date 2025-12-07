@@ -10,7 +10,8 @@ import UserInfoPage from './pages/UserInfoPage';
 import ClassManagerPage from './pages/ClassManagerPage';
 import GradeReportPage from './pages/GradeReportPage';
 import StudentManagerPage from './pages/StudentManagerPage';
-import AssignmentManagerPage from './pages/AssignmentManagerPage'; // <--- DÒNG MỚI THÊM
+import AssignmentManagerPage from './pages/AssignmentManagerPage';
+import StudentAssignmentPage from './pages/StudentAssignmentPage';
 
 function App() {
   // --- KHAI BÁO HOOKS ---
@@ -62,9 +63,11 @@ function App() {
       case 'students':
         return <StudentManagerPage currentUser={currentUser} />;
       case 'assignments':
-        return <AssignmentManagerPage currentUser={currentUser} />; // <--- TRANG BÀI TẬP
+        return <AssignmentManagerPage currentUser={currentUser} />;
       case 'grades':
         return <GradeReportPage currentUser={currentUser} />;
+      case 'student-assignments':
+        return <StudentAssignmentPage currentUser={currentUser} />;
       default:
         return <UserInfoPage user={currentUser} onUpdate={handleUpdateUser} />;
     }
@@ -108,7 +111,9 @@ function App() {
             <button className={`nav-btn ${activeTab === 'classes' ? 'active' : ''}`} onClick={() => setActiveTab('classes')}>
               📅 Thời Khóa Biểu
             </button>
-            {/* Sinh viên có thể xem bài tập nếu muốn (Tùy logic, ở đây tôi ẩn nút quản lý bài tập của SV đi) */}
+            <button className={`nav-btn ${activeTab === 'student-assignments' ? 'active' : ''}`} onClick={() => setActiveTab('student-assignments')}>
+              📝 Làm Bài Tập
+            </button>
           </>
         )}
 
