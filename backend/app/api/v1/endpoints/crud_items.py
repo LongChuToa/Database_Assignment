@@ -1,69 +1,78 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from ....db.session import get_db_connection
-from ....models.class_model import ClassCreate, ClassSearch
+# Import model từ file vừa tạo
+from ....models.class_model import ClassModel 
 
 router = APIRouter()
 
-# 1. Tìm kiếm lớp
+
+
+# --- API 1: TÌM KIẾM LỚP HỌC (Câu 3.2) ---
 @router.post("/classes/search")
-def search_classes(filter: ClassSearch):
+def search_classes(keyword: str = "", semester: str = ""):
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True) # dictionary=True để trả về JSON đẹp
     try:
-        # [TODO] Query: SELECT * FROM LOP_HOC ...
-        # Mapping: Cần JOIN với MON_HOC để lấy Tên Môn
-        sql_query = "" 
+        # Query JOIN để lấy tên môn học cho đẹp
+        sql = """
+            SELECT lh.`Tên học kì`, lh.`Mã môn học`, mh.`Tên` as `Tên môn`, 
+                   lh.`Tên lớp`, lh.`Mã giảng viên`, lh.`Thứ`, lh.`Giờ học`, lh.`Địa điểm`
+            FROM `LỚP HỌC` lh
+            JOIN `MÔN HỌC` mh ON lh.`Mã môn học` = mh.`Mã`
+            WHERE 1=1
+        """
+        params = []
         
-        if sql_query:
-            # Code thực thi...
-            return [] # Mock
-        return []
+        if semester and semester != "All":
+            sql += " AND lh.`Tên học kì` = %s"
+            params.append(semester)
+            
+        if keyword:
+            sql += " AND mh.`Tên` LIKE %s"
+            params.append(f"%{keyword}%")
+
+        cursor.execute(sql, params)
+        return cursor.fetchall()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:
         conn.close()
 
-# 2. Tạo lớp học (Insert vào bảng có 3 PK)
+# --- API 2: THÊM LỚP HỌC (Câu 3.1) ---
 @router.post("/classes/create")
-def create_class(item: ClassCreate):
+def create_class(item: ClassModel):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # [TODO] Query: INSERT INTO LOP_HOC (TenHocKi, MaMonHoc, TenLop, MaGiangVien, ThoiGian, DiaDiem) ...
-        sql_query = "" 
-        
-        if sql_query:
-            cursor.execute(sql_query, (
-                item.semesterName, item.subjectId, item.className, 
-                item.lecturerId, item.time, item.location
-            ))
-            conn.commit()
-            return {"message": "Thêm lớp thành công"}
-        return {"message": "API nhận dữ liệu thành công (Chưa có SQL)"}
+        # Gọi thẳng câu lệnh INSERT (Hoặc gọi Procedure insert_lophoc_hoc nếu muốn xịn hơn)
+        sql = """
+            INSERT INTO `LỚP HỌC` 
+            (`Tên học kì`, `Mã môn học`, `Tên lớp`, `Mã giảng viên`, `Thứ`, `Giờ học`, `Địa điểm`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(sql, (
+            item.semester, item.subjectId, item.className, 
+            item.lecturerId, item.day, item.time, item.location
+        ))
+        conn.commit()
+        return {"message": "Thêm lớp thành công"}
     except Exception as e:
         conn.rollback()
+        # Bắt lỗi trigger (VD: Lớp chưa có SV)
         raise HTTPException(status_code=400, detail=str(e))
     finally:
         conn.close()
 
-# 3. Xóa lớp học (Cần 3 tham số để định danh 1 lớp)
+# --- API 3: XÓA LỚP HỌC (Câu 3.1) ---
 @router.delete("/classes/delete")
-def delete_class(
-    semester: str = Query(..., alias="semester"), 
-    subject: str = Query(..., alias="subject"), 
-    classname: str = Query(..., alias="classname")
-):
+def delete_class(semester: str, subjectId: int, className: str):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # [TODO] Query: DELETE FROM LOP_HOC WHERE TenHocKi=? AND MaMonHoc=? AND TenLop=?
-        sql_query = "" 
-        
-        if sql_query:
-            cursor.execute(sql_query, (semester, subject, classname))
-            conn.commit()
-            return {"message": "Xóa thành công"}
-        return {"message": "Chưa có SQL Xóa"}
+        sql = "DELETE FROM `LỚP HỌC` WHERE `Tên học kì`=%s AND `Mã môn học`=%s AND `Tên lớp`=%s"
+        cursor.execute(sql, (semester, subjectId, className))
+        conn.commit()
+        return {"message": "Xóa lớp thành công"}
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=400, detail=str(e))

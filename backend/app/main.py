@@ -1,30 +1,27 @@
-# src/backend/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import các router
-from .api.v1.endpoints import auth, crud_items, crud_students, crud_submissions, crud_users, functions, lists, crud_assignments
+# Chỉ import 2 file quan trọng nhất
+from .api.v1.endpoints import crud_items, functions
 
-app = FastAPI()
+app = FastAPI(title="BK-LMS Minimal")
 
+# Cấu hình CORS để Frontend gọi được
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"], # Cho phép tất cả để test cho dễ
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Đăng ký Routers
-app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
+# Đăng ký Router
+# crud_items: Chứa API Thêm/Xóa/Tìm Lớp Học
 app.include_router(crud_items.router, prefix="/api/v1", tags=["Classes"])
-app.include_router(crud_students.router, prefix="/api/v1", tags=["Students"])
-app.include_router(crud_users.router, prefix="/api/v1", tags=["Users"]) # <--- Mới thêm
-app.include_router(crud_submissions.router, prefix="/api/v1", tags=["Submissions"])
+
+# functions: Chứa API Báo cáo điểm
 app.include_router(functions.router, prefix="/api/v1", tags=["Reports"])
-app.include_router(lists.router, prefix="/api/v1", tags=["Common"])
-app.include_router(crud_assignments.router, prefix="/api/v1", tags=["Assignments"])
 
 @app.get("/")
 def root():
-    return {"message": "BK-LMS API Running"}
+    return {"message": "BK-LMS Minimal API is Running"}

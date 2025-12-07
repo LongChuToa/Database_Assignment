@@ -1,3 +1,4 @@
+-- Active: 1765087171323@@127.0.0.1@3306@lmsdb
 CREATE TABLE IF NOT EXISTS `KHOA` (
 	`Mã` INT PRIMARY KEY,
 	`Tên` VARCHAR(50) CHARACTER SET utf8mb4 collate utf8mb4_vietnamese_ci UNIQUE,
