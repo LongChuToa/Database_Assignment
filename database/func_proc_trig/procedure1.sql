@@ -1,41 +1,48 @@
-﻿DELIMITER $$
+﻿USE BTL_HCSDL; 
+GO
 
-DROP PROCEDURE IF EXISTS sp_LayDSSVDatDiemTrongLop$$
+IF OBJECT_ID('sp_LayDSSVDatDiemTrongLop', 'P') IS NOT NULL
+    DROP PROCEDURE sp_LayDSSVDatDiemTrongLop;
+GO
 
-CREATE PROCEDURE sp_LayDSSVDatDiemTrongLop(
-    IN p_TenHocKi VARCHAR(50),
-    IN p_MaMonHoc INT,
-    IN p_TenLop VARCHAR(50),
-    IN p_DiemToiThieu DECIMAL(4, 2)
-)
+CREATE PROCEDURE sp_LayDSSVDatDiemTrongLop
+    @TenHocKi NVARCHAR(50),
+    @MaMonHoc INT,
+    @TenLop NVARCHAR(50),
+    @DiemToiThieu DECIMAL(4, 2)
+AS
 BEGIN
-    -- Kiểm tra điểm hợp lệ
-    IF p_DiemToiThieu < 0 OR p_DiemToiThieu > 10 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Lỗi nhập dữ liệu: Điểm tối thiểu phải nằm trong khoảng 0 đến 10.';
-    END IF;
+    -- Kiểm tra tham số đầu vào
+    IF @DiemToiThieu < 0 OR @DiemToiThieu > 10
+    BEGIN
+        RAISERROR(N'Lỗi nhập dữ liệu: Điểm tối thiểu phải nằm trong khoảng 0 đến 10.', 16, 1)
+        RETURN
+    END
 
-    -- Câu truy vấn chính
+    -- Truy vấn chính
     SELECT
-        nd.`Mã` AS MaSV,
-        nd.`Họ và tên` AS HoVaTen,
-        h.`Tên lớp` AS TenLop,
-        h.`Tên học kì` AS TenHocKi,
-        h.`Điểm tổng kết` AS DiemTongKet
+        sv.[Mã EDUMEMBER] AS [Mã Sinh Viên],
+        nd.[Họ và tên] AS [Họ và Tên],
+        lh.[Tên lớp] AS [Tên Lớp],
+        h.[Điểm tổng kết] AS [Điểm Tổng Kết]
     FROM
-        `NGƯỜI DÙNG` nd
+        [Sinh viên] sv
     JOIN
-        `Sinh viên` sv ON nd.`Mã` = sv.`Mã EDUMEMBER`
+        [NGƯỜI DÙNG] nd ON sv.[Mã EDUMEMBER] = nd.[Mã]
     JOIN
-        `HỌC` h ON sv.`Mã EDUMEMBER` = h.`Mã sinh viên`
+        [HỌC] h ON sv.[Mã EDUMEMBER] = h.[Mã sinh viên]
+    JOIN
+        [LỚP HỌC] lh 
+        ON h.[Tên học kì] = lh.[Tên học kì]
+        AND h.[Mã môn học] = lh.[Mã môn học]
+        AND h.[Tên lớp] = lh.[Tên lớp]
     WHERE
-        h.`Tên học kì` = p_TenHocKi
-        AND h.`Mã môn học` = p_MaMonHoc
-        AND h.`Tên lớp` = p_TenLop
-        AND h.`Điểm tổng kết` IS NOT NULL
-        AND h.`Điểm tổng kết` >= p_DiemToiThieu
+        h.[Tên học kì] = @TenHocKi
+        AND h.[Mã môn học] = @MaMonHoc
+        AND h.[Tên lớp] = @TenLop
+        AND h.[Điểm tổng kết] IS NOT NULL
+        AND h.[Điểm tổng kết] >= @DiemToiThieu
     ORDER BY
-        nd.`Họ và tên` ASC;
-END$$
-
-DELIMITER ;
+        nd.[Họ và tên] ASC;
+END
+GO

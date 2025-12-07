@@ -1,60 +1,67 @@
-﻿DELIMITER $$
+﻿USE BTL_HCSDL;
+GO
 
-DROP FUNCTION IF EXISTS fn_TinhTongTinChiHoanThanh$$
+-- Xóa hàm cũ nếu tồn tại
+IF OBJECT_ID('fn_TinhTongTinChiHoanThanh', 'FN') IS NOT NULL
+    DROP FUNCTION fn_TinhTongTinChiHoanThanh;
+GO
 
-CREATE FUNCTION fn_TinhTongTinChiHoanThanh(
-    p_MaSV INT,
-    p_DiemDau DECIMAL(4, 2)
+CREATE FUNCTION fn_TinhTongTinChiHoanThanh
+(
+    @MaSV INT,                -- Tương ứng với [Mã EDUMEMBER] trong [Sinh viên]
+    @DiemDau DECIMAL(4, 2)
 )
 RETURNS INT
-READS SQL DATA
-DETERMINISTIC
+AS
 BEGIN
-    DECLARE v_TongTinChi INT DEFAULT 0;
-    DECLARE v_DiemTongKet DECIMAL(4, 2);
-    DECLARE v_SoTinChi INT;
-    DECLARE done INT DEFAULT FALSE;
+    DECLARE @TongTinChi INT = 0;
+    DECLARE @DiemTongKet DECIMAL(4, 2);
+    DECLARE @SoTinChi INT;
 
-    -- Khai báo con trỏ lấy điểm và số tín chỉ
-    -- Lưu ý: Dựa vào _create.sql, bảng 'HỌC' nối với 'MÔN HỌC' qua 'Mã môn học'
+    -- 1. Kiểm tra tham số đầu vào: SV có tồn tại không?
+    IF NOT EXISTS (SELECT 1 FROM [Sinh viên] WHERE [Mã EDUMEMBER] = @MaSV)
+    BEGIN
+        -- Trả về 0 nếu SV không tồn tại
+        RETURN 0; 
+    END
+
+    -- 2. Khai báo CURSOR
+    -- Lấy [Điểm tổng kết] và [Số tín chỉ] cho tất cả các lớp SV đã học
     DECLARE cursor_tin_chi CURSOR FOR
     SELECT
-        h.`Điểm tổng kết`,
-        mh.`Số tín chỉ`
+        h.[Điểm tổng kết],
+        mh.[Số tín chỉ]
     FROM
-        `HỌC` h
+        [HỌC] h
     JOIN
-        `MÔN HỌC` mh ON h.`Mã môn học` = mh.`Mã`
+        [LỚP HỌC] lh 
+        ON h.[Tên học kì] = lh.[Tên học kì]
+        AND h.[Mã môn học] = lh.[Mã môn học]
+        AND h.[Tên lớp] = lh.[Tên lớp]
+    JOIN
+        [MÔN HỌC] mh ON lh.[Mã môn học] = mh.[Mã]
     WHERE
-        h.`Mã sinh viên` = p_MaSV
-        AND h.`Điểm tổng kết` IS NOT NULL;
-
-    -- Khai báo handler để thoát vòng lặp
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-
-    -- Kiểm tra sinh viên có tồn tại không
-    IF NOT EXISTS (SELECT 1 FROM `Sinh viên` WHERE `Mã EDUMEMBER` = p_MaSV) THEN
-        RETURN 0;
-    END IF;
+        h.[Mã sinh viên] = @MaSV
+        AND h.[Điểm tổng kết] IS NOT NULL;  -- Chỉ xét các lớp đã có điểm
 
     OPEN cursor_tin_chi;
+    FETCH NEXT FROM cursor_tin_chi INTO @DiemTongKet, @SoTinChi;
 
-    read_loop: LOOP
-        FETCH cursor_tin_chi INTO v_DiemTongKet, v_SoTinChi;
-        
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
+    -- 3. Vòng lặp qua các bản ghi bằng cursor
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        IF @DiemTongKet >= @DiemDau
+        BEGIN
+            SET @TongTinChi = @TongTinChi + @SoTinChi;
+        END
 
-        -- Nếu điểm tổng kết >= điểm đậu (tham số đầu vào) thì cộng dồn tín chỉ
-        IF v_DiemTongKet >= p_DiemDau THEN
-            SET v_TongTinChi = v_TongTinChi + v_SoTinChi;
-        END IF;
-    END LOOP;
+        FETCH NEXT FROM cursor_tin_chi INTO @DiemTongKet, @SoTinChi;
+    END
 
     CLOSE cursor_tin_chi;
+    DEALLOCATE cursor_tin_chi;
 
-    RETURN v_TongTinChi;
-END$$
-
-DELIMITER ;
+    -- Trả về tổng số tín chỉ đã hoàn thành
+    RETURN @TongTinChi;
+END
+GO
