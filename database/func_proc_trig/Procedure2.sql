@@ -1,34 +1,41 @@
-﻿DELIMITER $$
+﻿USE BTL_HCSDL;
+GO
 
-DROP PROCEDURE IF EXISTS sp_ThongKeMonHocCoNhieuSV$$
+IF OBJECT_ID('sp_ThongKeMonHocCoNhieuSV', 'P') IS NOT NULL
+    DROP PROCEDURE sp_ThongKeMonHocCoNhieuSV;
+GO
 
-CREATE PROCEDURE sp_ThongKeMonHocCoNhieuSV(
-    IN p_NguongSoSV INT
-)
+CREATE PROCEDURE sp_ThongKeMonHocCoNhieuSV
+    @NguongSoSV INT
+AS
 BEGIN
-    -- Kiểm tra tham số đầu vào
-    IF p_NguongSoSV <= 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Lỗi nhập dữ liệu: Ngưỡng số lượng sinh viên phải là số nguyên dương.';
-    END IF;
+    -- Kiểm tra tham số đầu vào (Ngưỡng SV phải là số dương)
+    IF @NguongSoSV <= 0
+    BEGIN
+        RAISERROR(N'Lỗi nhập dữ liệu: Ngưỡng số lượng sinh viên phải là số nguyên dương.', 16, 1)
+        RETURN
+    END
 
-    -- Câu truy vấn chính
-    -- Đếm số lượng sinh viên từ bảng HỌC theo từng Môn học
+    -- Truy vấn chính
     SELECT
-        mh.`Mã` AS MaMonHoc,
-        mh.`Tên` AS TenMonHoc,
-        mh.`Số tín chỉ` AS SoTinChi,
-        COUNT(h.`Mã sinh viên`) AS TongSoSV
+        mh.[Mã] AS [Mã Môn Học],
+        mh.[Tên] AS [Tên Môn Học],
+        mh.[Số tín chỉ] AS [Số Tín Chỉ],
+        COUNT(h.[Mã sinh viên]) AS [Tổng Số SV]
     FROM
-        `MÔN HỌC` mh
+        [MÔN HỌC] mh
     JOIN
-        `HỌC` h ON mh.`Mã` = h.`Mã môn học`
+        [LỚP HỌC] lh ON mh.[Mã] = lh.[Mã môn học]
+    JOIN
+        [HỌC] h 
+        ON lh.[Tên học kì] = h.[Tên học kì]
+        AND lh.[Mã môn học] = h.[Mã môn học]
+        AND lh.[Tên lớp] = h.[Tên lớp]
     GROUP BY
-        mh.`Mã`, mh.`Tên`, mh.`Số tín chỉ`
+        mh.[Mã], mh.[Tên], mh.[Số tín chỉ]
     HAVING
-        COUNT(h.`Mã sinh viên`) >= p_NguongSoSV
+        COUNT(h.[Mã sinh viên]) >= @NguongSoSV
     ORDER BY
-        TongSoSV DESC;
-END$$
-
-DELIMITER ;
+        [Tổng Số SV] DESC;
+END
+GO
