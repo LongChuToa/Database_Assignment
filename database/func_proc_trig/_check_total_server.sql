@@ -282,13 +282,13 @@ GO
 -- 4. Procedure insert tài liệu lớp học cùng loại tài liệu
 -- ==============================
 CREATE PROCEDURE insert_tllh
-    @p_tenkh VARCHAR(50),
+    @p_tenkh NVARCHAR(50),
     @p_mamh INT,
     @p_tenlop VARCHAR(50),
     @p_matailieu INT,
-    @p_ten VARCHAR(50),
-    @p_mota VARCHAR(50),
-    @p_tenloai VARCHAR(50)
+    @p_ten NVARCHAR(50),
+    @p_mota NVARCHAR(50),
+    @p_tenloai NVARCHAR(50)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -475,10 +475,10 @@ GO
 CREATE PROCEDURE insert_sinhvien_hoc
     @p_maSV INT,
     @p_lop VARCHAR(20),
-    @p_ct VARCHAR(50),
+    @p_ct NVARCHAR(50),
     @p_nienkhoa INT,
     @p_makhoa VARCHAR(10),
-    @p_tenkh VARCHAR(50),
+    @p_tenkh NVARCHAR(50),
     @p_mamh INT,
     @p_tenlop VARCHAR(50)
 AS
@@ -507,14 +507,14 @@ GO
 -- 4. Procedure insert Lớp học cùng HỌC
 -- =============================================
 CREATE PROCEDURE insert_lophoc_hoc
-    @p_tenkh VARCHAR(50),
+    @p_tenkh NVARCHAR(50),
     @p_mamh INT,
     @p_tenlop VARCHAR(50),
     @p_magv INT,
     @p_maSV INT,
     @p_thu CHAR(2),
     @p_giohoc TIME,
-    @p_diadiem VARCHAR(50)
+    @p_diadiem NVARCHAR(50)
 AS
 BEGIN
     BEGIN TRY

@@ -1,22 +1,17 @@
 version: '3.8'
 
 services:
-  # 1. DATABASE (MySQL 8.0)
+  # 1. DATABASE (SQL Server)
   db:
-    image: mysql:8.0
-    container_name: btl2_mysql
-    cap_add:
-      - SYS_NICE  # Tối ưu hiệu năng
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: btl2_sql_server
     environment:
-      - MYSQL_ROOT_PASSWORD=MatKhauManh123!
-      - MYSQL_DATABASE=lmsdb
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MatKhauManh123!
     ports:
-      - "3306:3306" # Cổng mặc định của MySQL
+      - "1433:1433"
     volumes:
-      - mysql_data:/var/lib/mysql
-      # TỰ ĐỘNG CHẠY FILE SQL KHI KHỞI TẠO (Quan trọng)
-      - ./src/database:/docker-entrypoint-initdb.d
-    command: --default-authentication-plugin=mysql_native_password
+      - sql_data:/var/opt/mssql
 
   # 2. BACKEND (Python)
   backend:
@@ -28,9 +23,8 @@ services:
       - "8000:8000"
     environment:
       - DB_SERVER=db
-      - DB_PORT=3306
-      - DB_NAME=lmsdb
-      - DB_USER=root
+      - DB_NAME=BTL_HCSDL  # Tên DB trùng với file 01_create.sql
+      - DB_USER=sa
       - DB_PASSWORD=MatKhauManh123!
     volumes:
       - ./backend:/app
@@ -51,4 +45,4 @@ services:
     stdin_open: true
 
 volumes:
-  mysql_data:
+  sql_data:

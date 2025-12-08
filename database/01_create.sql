@@ -11,7 +11,7 @@ GO
 
 CREATE TABLE [KHOA] (
     [Mã] INT PRIMARY KEY,
-    [Tên] VARCHAR(50) COLLATE Vietnamese_CI_AS UNIQUE,
+    [Tên] NVARCHAR(50) COLLATE Vietnamese_CI_AS UNIQUE,
     [Email] VARCHAR(50) UNIQUE,
     [Năm thành lập] DATE,
     [Số điện thoại] VARCHAR(50)
@@ -19,35 +19,35 @@ CREATE TABLE [KHOA] (
 
 CREATE TABLE [TÁC GIẢ TÀI LIỆU] (
     [Mã tài liệu] INT,
-    [Tên tác giả] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Tên tác giả] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     PRIMARY KEY([Mã tài liệu], [Tên tác giả])
 );
 
 CREATE TABLE [GIẢNG VIÊN] (
     [Mã EDUMEMBER] INT PRIMARY KEY,
-    [Học vị] VARCHAR(50) COLLATE Vietnamese_CI_AS,
-    [Chức danh] VARCHAR(50) COLLATE Vietnamese_CI_AS,
-    [Lĩnh vực] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Học vị] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Chức danh] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Lĩnh vực] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     [Số năm kinh nghiệm] INT,
     [Mã khoa] INT NOT NULL
 );
 
 CREATE TABLE [MÔN HỌC] (
     [Mã] INT PRIMARY KEY,
-    [Tên] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Tên] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     [Số tín chỉ] INT,
-    [Mô tả] VARCHAR(50) COLLATE Vietnamese_CI_AS
+    [Mô tả] NVARCHAR(50) COLLATE Vietnamese_CI_AS
 );
 
 CREATE TABLE [TL THUỘC VỀ] (
     [Mã tài liệu] INT,
-    [Tên loại tài liệu] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Tên loại tài liệu] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     PRIMARY KEY ([Mã tài liệu],[Tên loại tài liệu])
 );
 
 CREATE TABLE [LOẠI TÀI LIỆU] (
-    [Tên] VARCHAR(50) COLLATE Vietnamese_CI_AS PRIMARY KEY,
-    [Tên cha] VARCHAR(50) COLLATE Vietnamese_CI_AS
+    [Tên] NVARCHAR(50) COLLATE Vietnamese_CI_AS PRIMARY KEY,
+    [Tên cha] NVARCHAR(50) COLLATE Vietnamese_CI_AS
 );
 
 CREATE TABLE [HỌC KÌ] (
@@ -61,7 +61,7 @@ CREATE TABLE [LỚP HỌC] (
     [Mã giảng viên] INT NOT NULL,
     [Thứ] CHAR(2),
     [Giờ học] TIME,
-    [Địa điểm] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Địa điểm] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     PRIMARY KEY ([Tên học kì], [Mã môn học], [Tên lớp]),
     CHECK ([Thứ] IN ('2','3','4','5','6','7','CN'))
 );
@@ -71,8 +71,8 @@ CREATE TABLE [Tài liệu lớp học] (
     [Mã môn học] INT,
     [Tên lớp] VARCHAR(50),
     [Mã tài liệu] INT,
-    [Tên] VARCHAR(50) COLLATE Vietnamese_CI_AS,
-    [Mô tả] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Tên] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Mô tả] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     PRIMARY KEY ([Tên học kì], [Mã môn học], [Tên lớp], [Mã tài liệu])
 );
 
@@ -81,7 +81,7 @@ CREATE TABLE [TLLH THUỘC VỀ] (
     [Mã môn học] INT,
     [Tên lớp] VARCHAR(50),
     [Mã tài liệu lớp học] INT,
-    [Tên loại tài liệu] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Tên loại tài liệu] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     PRIMARY KEY ([Tên học kì], [Mã môn học], [Tên lớp], [Mã tài liệu lớp học], [Tên loại tài liệu])
 );
 
@@ -92,7 +92,7 @@ CREATE TABLE [HỌC] (
     [Tên lớp] VARCHAR(50),
     [Điểm tổng kết] DECIMAL(10,2),
     [Ngày đăng kí] DATE,
-    [Trạng thái học] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Trạng thái học] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     PRIMARY KEY ([Mã sinh viên], [Tên học kì], [Mã môn học], [Tên lớp])
 );
 
@@ -101,10 +101,10 @@ CREATE TABLE [BÀI TẬP] (
     [Mã môn học] INT,
     [Tên lớp] VARCHAR(50),
     [Mã bài tập] INT,
-    [Tùy chọn] VARCHAR(50) COLLATE Vietnamese_CI_AS,
-    [Hình thức làm bài] VARCHAR(50) COLLATE Vietnamese_CI_AS,
-    [Tên bài] VARCHAR(50) COLLATE Vietnamese_CI_AS,
-    [Mô tả] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Tùy chọn] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Hình thức làm bài] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Tên bài] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Mô tả] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     [Thời gian bắt đầu] DATE,
     [Thời gian kết thúc] DATE,
     PRIMARY KEY ([Tên học kì], [Mã môn học], [Tên lớp], [Mã bài tập])
@@ -140,8 +140,8 @@ CREATE TABLE [NGƯỜI DÙNG](
     [Email] VARCHAR(50),
     [Tên đăng nhập] VARCHAR(50) UNIQUE,
     [Mật khẩu] VARCHAR(100),
-    [Họ và tên] VARCHAR(50) COLLATE Vietnamese_CI_AS,
-    [Địa chỉ] VARCHAR(100) COLLATE Vietnamese_CI_AS
+    [Họ và tên] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Địa chỉ] NVARCHAR(100) COLLATE Vietnamese_CI_AS
 );
 
 CREATE TABLE [Thư viện](
@@ -158,7 +158,7 @@ CREATE TABLE [Số điện thoại thư viện](
 CREATE TABLE [Tài liệu](
     [Mã] INT PRIMARY KEY,
     [Mã thư viện] INT,
-    [Tên] VARCHAR(100) COLLATE Vietnamese_CI_AS,
+    [Tên] NVARCHAR(100) COLLATE Vietnamese_CI_AS,
     [Ngày xuất bản] DATE
 );
 
@@ -185,7 +185,7 @@ CREATE TABLE [Số điện thoại người dùng](
 CREATE TABLE [ADMIN](
     [Mã người dùng] INT PRIMARY KEY,
     [Cấp độ quyền] INT,
-    [Trạng thái quyền] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Trạng thái quyền] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     [Ngày bắt đầu quản trị] DATE
 );
 
@@ -209,8 +209,8 @@ CREATE TABLE [Giám sát](
 
 CREATE TABLE [Sinh viên](
     [Mã EDUMEMBER] INT PRIMARY KEY,
-    [Lớp] VARCHAR(20) COLLATE Vietnamese_CI_AS,
-    [Chương trình] VARCHAR(50) COLLATE Vietnamese_CI_AS,
+    [Lớp] NVARCHAR(20) COLLATE Vietnamese_CI_AS,
+    [Chương trình] NVARCHAR(50) COLLATE Vietnamese_CI_AS,
     [Niên khóa] INT,
     [Mã khoa] VARCHAR(10)
 );
