@@ -4,3 +4,6 @@ database/.vs/slnx.sqlite
 database/.vs/database.slnx/v18/.wsuo
 database/.vs/database.slnx/FileContentIndex/f3b5b776-363b-47a7-9806-0ccfcfb30688.vsidx
 *.pyc
+__pycache__/
+*.py[cod]
+*$py.class

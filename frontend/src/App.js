@@ -1,59 +1,43 @@
 import React, { useState } from 'react';
 import './App.css';
-
-// Chỉ import 2 trang chức năng chính
-import ClassManagerPage from './pages/ClassManagerPage';
-import GradeReportPage from './pages/GradeReportPage';
+import ProcedureDemoPage from './pages/ProcedureDemoPage';
+import FunctionPage from './pages/FunctionPage';
+import GradeManagementPage from './pages/GradeManagementPage';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('classes');
+  const [tab, setTab] = useState('proc'); 
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'classes':
-        return <ClassManagerPage />;
-      case 'grades':
-        return <GradeReportPage />;
-      default:
-        return <ClassManagerPage />;
-    }
-  };
+  const btnStyle = (isActive) => ({
+    display: 'block', width: '100%', padding: '12px', marginTop: '10px',
+    textAlign: 'left', background: isActive ? '#34495e' : 'transparent',
+    border: 'none', color: 'white', cursor: 'pointer', borderRadius: '4px', fontSize: '14px'
+  });
 
   return (
-    <div className="app-container" style={{display: 'flex', minHeight: '100vh'}}>
-      {/* SIDEBAR ĐƠN GIẢN */}
-      <div className="sidebar" style={{width: '250px', background: '#2c3e50', color: 'white', padding: '20px'}}>
-        <div style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '30px', textAlign: 'center', borderBottom: '1px solid #444', paddingBottom: '10px'}}>
-          BK-LMS
-          <div style={{fontSize: '12px', fontWeight: 'normal', color: '#ccc'}}>Phiên bản BTL2</div>
-        </div>
-
-        <button 
-          onClick={() => setActiveTab('classes')}
-          style={{
-            display: 'block', width: '100%', padding: '15px', textAlign: 'left',
-            background: activeTab === 'classes' ? '#34495e' : 'transparent',
-            color: 'white', border: 'none', cursor: 'pointer', fontSize: '16px'
-          }}
-        >
-          📚 Quản Lý Lớp Học
+    <div className="app-container" style={{display:'flex', height:'100vh'}}>
+      {/* SIDEBAR */}
+      <div style={{width:'240px', background:'#2c3e50', color:'white', padding:'20px', display:'flex', flexDirection:'column'}}>
+        <h3 style={{marginBottom:'30px', borderBottom:'1px solid #7f8c8d', paddingBottom:'10px'}}>BK-LMS DB</h3>
+        
+        <button onClick={() => setTab('grades')} style={btnStyle(tab === 'grades')}>
+            📊 Quản Lý Điểm
         </button>
 
-        <button 
-          onClick={() => setActiveTab('grades')}
-          style={{
-            display: 'block', width: '100%', padding: '15px', textAlign: 'left',
-            background: activeTab === 'grades' ? '#34495e' : 'transparent',
-            color: 'white', border: 'none', cursor: 'pointer', fontSize: '16px'
-          }}
-        >
-          📊 Tra Cứu Điểm
+        <button onClick={() => setTab('proc')} style={btnStyle(tab === 'proc')}>
+            ⚙️ Tổng hợp Procedure
         </button>
+
+        <button onClick={() => setTab('func')} style={btnStyle(tab === 'func')}>
+            🔮 Tiện ích Functions (New)
+        </button>
+
       </div>
 
-      {/* NỘI DUNG CHÍNH */}
-      <div className="main-content" style={{flex: 1, padding: '30px', background: '#f4f6f9'}}>
-        {renderContent()}
+      {/* MAIN CONTENT */}
+      <div style={{flex:1, padding:'20px', overflowY:'auto', background:'#f4f6f9'}}>
+        {tab === 'grades' && <GradeManagementPage />}
+        {tab === 'proc' && <ProcedureDemoPage />}
+        {tab === 'func' && <FunctionPage />}
       </div>
     </div>
   );

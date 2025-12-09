@@ -88,89 +88,93 @@ ADD CONSTRAINT fk_tgl_baitap
 FOREIGN KEY ([Tên học kì], [Mã môn học], [Tên lớp], [Mã bài tập])
 REFERENCES [BÀI TẬP]([Tên học kì], [Mã môn học], [Tên lớp], [Mã bài tập]);
 
--- 11. Số điện thoại thư viện
+
 ALTER TABLE [Số điện thoại thư viện]
 ADD CONSTRAINT FK_SDT_ThuVien
 FOREIGN KEY ([Mã thư viện]) REFERENCES [Thư viện]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 12. Tài liệu
+-- 12. Tài liệu (Thư viện giải thể -> Tài liệu thuộc thư viện đó bị xóa)
 ALTER TABLE [Tài liệu]
 ADD CONSTRAINT FK_TaiLieu_ThuVien
 FOREIGN KEY ([Mã thư viện]) REFERENCES [Thư viện]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 13. Gửi tin nhắn
+-- 13. Gửi tin nhắn (Người dùng bị xóa -> Hộp thư của họ bị xóa)
+-- Lưu ý: Việc này sẽ xóa luôn đoạn chat đối với người còn lại.
 ALTER TABLE [Gửi tin nhắn]
 ADD CONSTRAINT FK_GuiTinNhan_NguoiGui
 FOREIGN KEY ([Mã người gửi]) REFERENCES [NGƯỜI DÙNG]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
 ALTER TABLE [Gửi tin nhắn]
 ADD CONSTRAINT FK_GuiTinNhan_NguoiNhan
 FOREIGN KEY ([Mã người nhận]) REFERENCES [NGƯỜI DÙNG]([Mã])
-ON DELETE NO ACTION;
+-- Lưu ý: SQL Server có thể báo lỗi "Multiple Cascade Paths" ở đây nếu tham chiếu vòng.
+-- Nếu bị lỗi, hãy giữ cái này là NO ACTION hoặc chuyển sang Trigger. 
+-- Nhưng với cấu trúc cây này thường thì OK.
+ON DELETE NO ACTION; 
 
--- 14. Tin nhắn
+-- 14. Tin nhắn (Hội thoại bị xóa -> Nội dung tin nhắn bị xóa)
 ALTER TABLE [Tin nhắn]
 ADD CONSTRAINT FK_TinNhan_NguoiGui
 FOREIGN KEY ([Mã người gửi], [Mã người nhận])
 REFERENCES [Gửi tin nhắn]([Mã người gửi], [Mã người nhận])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 15. Số điện thoại người dùng
+-- 15. Số điện thoại người dùng (Người dùng mất -> SĐT mất)
 ALTER TABLE [Số điện thoại người dùng]
 ADD CONSTRAINT FK_SDT_NguoiDung
 FOREIGN KEY ([Mã người dùng]) REFERENCES [NGƯỜI DÙNG]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 16. ADMIN
+-- 16. ADMIN (Người dùng mất -> Vai trò Admin mất)
 ALTER TABLE [ADMIN]
 ADD CONSTRAINT FK_ADMIN_NguoiDung
 FOREIGN KEY ([Mã người dùng]) REFERENCES [NGƯỜI DÙNG]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 17. Quản lý
+-- 17. Quản lý (Admin mất -> Quan hệ quản lý mất)
 ALTER TABLE [Quản lý]
 ADD CONSTRAINT FK_QuanLy_ADMIN
 FOREIGN KEY ([Mã ADMIN]) REFERENCES [ADMIN]([Mã người dùng])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
 ALTER TABLE [Quản lý]
 ADD CONSTRAINT FK_QuanLy_ThuVien
 FOREIGN KEY ([Mã thư viện]) REFERENCES [Thư viện]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 18. EDUMEMBER
+-- 18. EDUMEMBER (Người dùng mất -> Vai trò Edumember mất)
 ALTER TABLE [EDUMEMBER]
 ADD CONSTRAINT FK_EDUMEMBER_NguoiDung
 FOREIGN KEY ([Mã người dùng]) REFERENCES [NGƯỜI DÙNG]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 19. Giám sát
+-- 19. Giám sát (Admin hoặc Edumember mất -> Quan hệ giám sát mất)
 ALTER TABLE [Giám sát]
 ADD CONSTRAINT FK_GiamSat_ADMIN
 FOREIGN KEY ([Mã ADMIN]) REFERENCES [ADMIN]([Mã người dùng])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
 ALTER TABLE [Giám sát]
 ADD CONSTRAINT FK_GiamSat_EDUMEMBER
 FOREIGN KEY ([Mã EDUMEMBER]) REFERENCES [EDUMEMBER]([Mã người dùng])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 20. Sinh viên
+-- 20. Sinh viên (Edumember mất -> Thông tin sinh viên mất)
 ALTER TABLE [Sinh viên]
 ADD CONSTRAINT FK_SinhVien_EDUMEMBER
 FOREIGN KEY ([Mã EDUMEMBER]) REFERENCES [EDUMEMBER]([Mã người dùng])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
--- 21. Truy cập
+-- 21. Truy cập (Edumember mất -> Lịch sử truy cập mất)
 ALTER TABLE [Truy cập]
 ADD CONSTRAINT FK_TruyCap_EDUMEMBER
 FOREIGN KEY ([Mã EDUMEMBER]) REFERENCES [EDUMEMBER]([Mã người dùng])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
 
 ALTER TABLE [Truy cập]
 ADD CONSTRAINT FK_TruyCap_TaiLieu
 FOREIGN KEY ([Mã tài liệu]) REFERENCES [Tài liệu]([Mã])
-ON DELETE NO ACTION;
+ON DELETE CASCADE;
