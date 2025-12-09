@@ -41,11 +41,6 @@ Khi Docker chạy, nó tạo ra một SQL Server trống rỗng. Bạn cần n�
       * **Login:** `sa`
       * **Password:** `MatKhauManh123!` (Cấu hình trong docker-compose.yml)
 3.  Mở và **Execute (F5)** lần lượt các file trong thư mục `src/database/` theo đúng thứ tự:
-    1.  `01_schema_creation.sql` (Tạo bảng)
-    2.  `02_data_seeding.sql` (Data mẫu)
-    3.  `03_procedures_crud.sql` (Thủ tục Thêm/Sửa/Xóa)
-    4.  `04_triggers.sql` (Ràng buộc toàn vẹn)
-    5.  `06_functions.sql` (Hàm tính toán)
 
 ### Bước 3: Truy cập ứng dụng
 
