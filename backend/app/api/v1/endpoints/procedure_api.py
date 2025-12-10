@@ -6,7 +6,6 @@ from datetime import date
 
 router = APIRouter()
 
-# DTO cho các tính năng mới
 class ClassCreationDTO(BaseModel):
     semester: str
     subjectId: int
@@ -29,9 +28,6 @@ class DocumentDTO(BaseModel):
     date: str
     typeName: str
 
-# =================================================================
-# 1. QUẢN LÝ NGƯỜI DÙNG (Tối ưu hóa với CASCADE)
-# =================================================================
 
 @router.get("/users")
 def get_all_users():
@@ -81,11 +77,6 @@ def delete_user(user_id: int):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # =================================================================================
-        # CẬP NHẬT: Không cần xóa thủ công các bảng con nữa!
-        # Database đã cài đặt ON DELETE CASCADE.
-        # Chỉ cần gọi sp_delete_user, SQL Server sẽ tự xóa Admin, Sinh viên, Tin nhắn...
-        # =================================================================================
         cursor.execute("{CALL sp_delete_user (?)}", (user_id,))
         conn.commit()
         return {"message": "✅ Xóa thành công (Hệ thống tự động dọn dẹp dữ liệu liên quan)"}
@@ -97,11 +88,7 @@ def delete_user(user_id: int):
     finally:
         conn.close()
 
-# =================================================================
-# 2. CÁC QUY TRÌNH NGHIỆP VỤ PHỨC TẠP (GỌI CÁC SP ĐÃ FIX)
-# =================================================================
-
-# --- A. NHẬP HỌC SINH VIÊN (User -> Edumember -> SinhVien/Hoc) ---
+# --- NHẬP HỌC SINH VIÊN (User -> Edumember -> SinhVien/Hoc) ---
 @router.post("/enrollment/student")
 def enroll_student(item: StudentEnrollmentDTO):
     conn = get_db_connection()
@@ -113,18 +100,17 @@ def enroll_student(item: StudentEnrollmentDTO):
         cursor.execute("{CALL sp_insert_user (?, ?, ?, ?, ?, ?)}", 
                        (item.id, item.email, item.username, item.password, item.fullName, item.address))
         
-        # B2: insert_edumember (Vừa tạo ở bước SQL trên)
+        # B2: insert_edumember
         cursor.execute("{CALL insert_edumember (?, ?, ?)}", 
                        (item.id, today, item.adminId))
         
-        # B3: insert_sinhvien_hoc (Đã fix logic Cha trước Con sau)
-        # @p_maSV, @p_lop, @p_ct, @p_nienkhoa, @p_makhoa, @p_tenkh, @p_mamh, @p_tenlop
+        # B3: insert_sinhvien_hoc
         cursor.execute("{CALL insert_sinhvien_hoc (?, ?, ?, ?, ?, ?, ?, ?)}", 
                        (item.id, item.className, item.program, item.cohort, item.facultyId, 
                         item.semester, item.subjectId, item.enrollClass))
 
         conn.commit()
-        return {"message": "✅ Nhập học hoàn tất (Đã chạy 3 Procedures liên tiếp)"}
+        return {"message": "✅ Nhập học hoàn tất"}
     
     except Exception as e:
         conn.rollback()
@@ -133,14 +119,12 @@ def enroll_student(item: StudentEnrollmentDTO):
     finally:
         conn.close()
 
-# --- B. MỞ LỚP HỌC MỚI (Lớp -> Học) ---
+# --- MỞ LỚP HỌC MỚI (Lớp -> Học) ---
 @router.post("/classes")
 def create_class(item: ClassCreationDTO):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # Gọi insert_lophoc_hoc
-        # @p_tenkh, @p_mamh, @p_tenlop, @p_magv, @p_maSV, @p_thu, @p_giohoc, @p_diadiem
         cursor.execute("{CALL insert_lophoc_hoc (?, ?, ?, ?, ?, ?, ?, ?)}", 
                        (item.semester, item.subjectId, item.className, item.teacherId, 
                         item.studentId, item.day, item.time, item.room))
@@ -153,14 +137,12 @@ def create_class(item: ClassCreationDTO):
     finally:
         conn.close()
 
-# --- C. THÊM TÀI LIỆU (Tài liệu -> Loại) ---
+# --- THÊM TÀI LIỆU (Tài liệu -> Loại) ---
 @router.post("/documents")
 def create_document(item: DocumentDTO):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # Gọi insert_tailieu
-        # @p_ma, @p_mathuvien, @p_ten, @p_ngayxuatban, @p_tenloaitailieu
         cursor.execute("{CALL insert_tailieu (?, ?, ?, ?, ?)}", 
                        (item.docId, item.libraryId, item.name, item.date, item.typeName))
         conn.commit()
@@ -172,14 +154,12 @@ def create_document(item: DocumentDTO):
     finally:
         conn.close()
 
-# --- D. THÊM THƯ VIỆN (Thư viện -> Quản lý) ---
+# --- THÊM THƯ VIỆN (Thư viện -> Quản lý) ---
 @router.post("/libraries")
 def create_library(item: LibraryDTO):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # Gọi insert_thuvien
-        # @p_mathuvien, @p_namthanhlap, @p_maadmin
         cursor.execute("{CALL insert_thuvien (?, ?, ?)}", 
                        (item.libraryId, item.year, item.adminId))
         conn.commit()
@@ -192,7 +172,7 @@ def create_library(item: LibraryDTO):
         conn.close()
 
 
-# 1. Lấy danh sách Sinh viên (JOIN Người dùng + Khoa)
+# Lấy danh sách Sinh viên (JOIN Người dùng + Khoa)
 @router.get("/view/students")
 def view_students():
     conn = get_db_connection()
@@ -217,7 +197,7 @@ def view_students():
     finally:
         conn.close()
 
-# 2. Lấy danh sách Lớp học (JOIN Môn học + Giảng viên)
+# Lấy danh sách Lớp học (JOIN Môn học + Giảng viên)
 @router.get("/view/classes")
 def view_classes():
     conn = get_db_connection()
@@ -244,7 +224,7 @@ def view_classes():
     finally:
         conn.close()
 
-# 3. Lấy danh sách Tài liệu (JOIN Thư viện + Loại)
+# Lấy danh sách Tài liệu (JOIN Thư viện + Loại)
 @router.get("/view/documents")
 def view_documents():
     conn = get_db_connection()
@@ -269,7 +249,7 @@ def view_documents():
     finally:
         conn.close()
 
-# 4. Lấy danh sách Thư viện (JOIN Admin quản lý)
+# Lấy danh sách Thư viện (JOIN Admin quản lý)
 @router.get("/view/libraries")
 def view_libraries():
     conn = get_db_connection()
@@ -292,17 +272,12 @@ def view_libraries():
     finally:
         conn.close()
 
-# =================================================================
-# 4. API GỌI SQL FUNCTIONS (Scalar Functions)
-# =================================================================
-
-# A. Tính tổng tín chỉ tích lũy
+# Tính tổng tín chỉ tích lũy
 @router.get("/functions/credits")
 def get_total_credits(studentId: int, passScore: float = 4.0):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # Cú pháp gọi Scalar Function: SELECT dbo.TenHam(?, ?)
         cursor.execute("SELECT dbo.fn_TinhTongTinChiHoanThanh(?, ?)", (studentId, passScore))
         result = cursor.fetchone()
         return {"studentId": studentId, "totalCredits": result[0] if result else 0}
@@ -311,13 +286,12 @@ def get_total_credits(studentId: int, passScore: float = 4.0):
     finally:
         conn.close()
 
-# B. Kiểm tra trạng thái học tập
+# Kiểm tra trạng thái học tập
 @router.get("/functions/status")
 def check_status(studentId: int, semester: str):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # Cú pháp gọi Scalar Function
         cursor.execute("SELECT dbo.fn_KiemTraTrangThaiHocTap(?, ?)", (studentId, semester))
         result = cursor.fetchone()
         return {"studentId": studentId, "semester": semester, "status": result[0] if result else "Không xác định"}
@@ -327,10 +301,10 @@ def check_status(studentId: int, semester: str):
         conn.close()
 
 # =================================================================
-# 5. QUẢN LÝ ĐIỂM & THỐNG KÊ (Yêu cầu 1.1)
+# QUẢN LÝ ĐIỂM & THỐNG KÊ
 # =================================================================
 
-# A. Gọi SP: Lấy danh sách sinh viên đạt điểm (Tìm kiếm)
+# Gọi SP: Lấy danh sách sinh viên đạt điểm (Tìm kiếm)
 @router.get("/procedures/student-grades")
 def get_student_grades(semester: str, subjectId: int, className: str, minScore: float):
     conn = get_db_connection()
@@ -350,7 +324,7 @@ def get_student_grades(semester: str, subjectId: int, className: str, minScore: 
     finally:
         conn.close()
 
-# B. Gọi SP: Thống kê môn học (Report)
+# Gọi SP: Thống kê môn học (Report)
 @router.get("/procedures/subject-stats")
 def get_subject_stats(threshold: int):
     conn = get_db_connection()
@@ -366,7 +340,7 @@ def get_subject_stats(threshold: int):
     finally:
         conn.close()
 
-# C. Cập nhật Điểm (Feature Update cho danh sách trên)
+# Cập nhật Điểm (Feature Update cho danh sách trên)
 class GradeUpdateDTO(BaseModel):
     studentId: int
     semester: str
@@ -400,7 +374,7 @@ def update_student_grade(item: GradeUpdateDTO):
     finally:
         conn.close()
 
-# D. Xóa đăng ký học (Feature Delete cho danh sách trên)
+# Xóa đăng ký học (Feature Delete cho danh sách trên)
 @router.delete("/grades/delete")
 def delete_student_enrollment(studentId: int, semester: str, subjectId: int, className: str):
     conn = get_db_connection()

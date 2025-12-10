@@ -12,21 +12,30 @@ const ProcedureDemoPage = () => {
 
   // --- STATE DỮ LIỆU BẢNG ---
   const [tableData, setTableData] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
+  const [filterType, setFilterType] = useState('all'); // Giữ lại nếu cần dùng
 
   // --- STATE MODAL EDIT USER ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editUserForm, setEditUserForm] = useState({
     id: '', email: '', username: '', password: '', fullName: '', address: ''
   });
-
+  
   // --- STATE FORMS NHẬP LIỆU ---
-  const [enrollForm, setEnrollForm] = useState({
+  
+  // 1. Form thông tin chung của Sinh Viên
+  const [studentInfoForm, setStudentInfoForm] = useState({
     id: '', email: '', username: '', password: '', fullName: '', address: '',
-    adminId: '', className: '', program: 'Chính quy', cohort: '2023', facultyId: '',
+    adminId: '', className: '', program: 'Chính quy', cohort: '2023', facultyId: ''
+  });
+
+  // 2. State lưu danh sách lớp muốn đăng ký (Mảng các object)
+  const [addedClasses, setAddedClasses] = useState([]);
+
+  // 3. Form nhập liệu tạm thời cho một lớp học phần
+  const [currentClassInput, setCurrentClassInput] = useState({
     semester: '', subjectId: '', enrollClass: ''
   });
+
   const [classForm, setClassForm] = useState({
     semester: '', subjectId: '', className: '', 
     teacherId: '', studentId: '', day: '2', time: '07:00:00', room: 'A101'
@@ -38,18 +47,20 @@ const ProcedureDemoPage = () => {
     libraryId: '', year: '2000', adminId: ''
   });
 
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewStudentData, setViewStudentData] = useState(null);
+  const [studentEnrollments, setStudentEnrollments] = useState([]); // Danh sách môn đã học
+
   // --- LOAD DỮ LIỆU BAN ĐẦU ---
   useEffect(() => {
-    // 1. Load các Options cho dropdown
     const fetchOptions = async () => {
         try {
             const res = await axios.get('http://localhost:8000/api/v1/helpers/options');
             setOptions(res.data);
             
-            // Set default values để tránh dropdown trống
             if(res.data.semesters.length) {
                 const defaultSem = res.data.semesters[0];
-                setEnrollForm(prev => ({...prev, semester: defaultSem}));
+                setCurrentClassInput(prev => ({...prev, semester: defaultSem}));
                 setClassForm(prev => ({...prev, semester: defaultSem}));
             }
         } catch (err) { console.error("Lỗi load options:", err); }
@@ -74,17 +85,75 @@ const ProcedureDemoPage = () => {
   };
 
   useEffect(() => {
-    setSearchTerm(''); 
     fetchTableData();
   }, [activeTab]);
 
-  // --- HANDLERS (SUBMIT, DELETE, EDIT - Giữ nguyên logic) ---
+  // --- HANDLERS ---
+
+  // Xử lý thêm lớp vào danh sách tạm
+  const handleAddClassToList = () => {
+    if (!currentClassInput.subjectId || !currentClassInput.enrollClass || !currentClassInput.semester) {
+        alert("Vui lòng chọn Học kỳ, Môn học và nhập tên Lớp!");
+        return;
+    }
+    // Kiểm tra trùng môn
+    const exists = addedClasses.find(c => c.subjectId === currentClassInput.subjectId && c.semester === currentClassInput.semester);
+    if (exists) {
+        alert("Môn này trong học kỳ này đã được thêm vào danh sách rồi!");
+        return;
+    }
+
+    setAddedClasses([...addedClasses, currentClassInput]);
+    // Reset input lớp (giữ lại học kỳ cho tiện)
+    setCurrentClassInput(prev => ({...prev, subjectId: '', enrollClass: ''}));
+  };
+
+  // Xóa lớp khỏi danh sách tạm
+  const handleRemoveClassFromList = (index) => {
+    const newList = [...addedClasses];
+    newList.splice(index, 1);
+    setAddedClasses(newList);
+  };
+
+  // SUBMIT TỔNG (Đã sửa để hỗ trợ vòng lặp)
   const handleSubmit = async (endpoint, data) => {
     try {
-      await axios.post(`http://localhost:8000/api/v1/${endpoint}`, data);
-      alert("✅ Thành công!");
-      fetchTableData();
-    } catch (err) { alert("❌ Lỗi: " + (err.response?.data?.detail || err.message)); }
+        // LOGIC RIÊNG CHO TAB NHẬP HỌC (ENROLL)
+        if (activeTab === 'enroll') {
+            if (addedClasses.length === 0) {
+                alert("⚠️ Vui lòng thêm ít nhất 1 môn học vào danh sách!");
+                return;
+            }
+
+            let successCount = 0;
+            // Duyệt qua từng môn trong danh sách và gọi API
+            for (const cls of addedClasses) {
+                // Ghép thông tin SV + Thông tin lớp thành 1 payload
+                const payload = {
+                    ...studentInfoForm,
+                    semester: cls.semester,
+                    subjectId: cls.subjectId,
+                    enrollClass: cls.enrollClass
+                };
+
+                console.log("Sending payload:", payload);
+                await axios.post(`http://localhost:8000/api/v1/${endpoint}`, payload);
+                successCount++;
+            }
+            alert(`✅ Đã nhập học thành công cho SV ${studentInfoForm.fullName} vào ${successCount} lớp!`);
+            setAddedClasses([]); // Reset danh sách sau khi thành công
+        } 
+        // LOGIC CÁC TAB KHÁC (GIỮ NGUYÊN)
+        else {
+            await axios.post(`http://localhost:8000/api/v1/${endpoint}`, data);
+            alert("✅ Thành công!");
+        }
+        
+        fetchTableData();
+    } catch (err) { 
+        console.error(err);
+        alert("❌ Lỗi: " + (err.response?.data?.detail || err.message)); 
+    }
   };
 
   const handleDeleteUser = async (id) => {
@@ -113,11 +182,29 @@ const ProcedureDemoPage = () => {
     } catch (err) { alert("❌ Lỗi cập nhật: " + (err.response?.data?.detail || err.message)); }
   };
 
+  const handleViewDetail = async (row) => {
+    setViewStudentData(row);
+    setIsViewModalOpen(true);
+    setStudentEnrollments([]); // Reset danh sách môn cũ
+
+    // Gọi API lấy danh sách môn học của SV này (Giả sử endpoint này tồn tại)
+    // Nếu chưa có backend, nó sẽ chỉ hiện thông tin cá nhân
+    try {
+        // Lưu ý: Bạn cần thay đổi đường dẫn này khớp với backend của bạn
+        // Ví dụ: GET /api/v1/view/enrollments?student_id=xxx
+        const res = await axios.get(`http://localhost:8000/api/v1/view/classes?studentId=${row.ID}`);
+        setStudentEnrollments(res.data);
+    } catch (err) {
+        console.log("Chưa có API lấy lịch sử học hoặc lỗi: ", err);
+    }
+  };
+
   // --- STYLES ---
-  const containerStyle = { padding: '20px', maxWidth: '1000px', margin: '0 auto' };
-  const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '100%' };
-  const btnStyle = { padding:'10px', background: '#28a745', color: '#fff', border: 'none', borderRadius:'4px', cursor: 'pointer', marginTop:'10px', width:'100%' };
+  const containerStyle = { padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'Arial, sans-serif' };
+  const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '100%', boxSizing: 'border-box' };
+  const btnStyle = { padding:'10px', background: '#28a745', color: '#fff', border: 'none', borderRadius:'4px', cursor: 'pointer', marginTop:'10px', width:'100%', fontWeight: 'bold' };
   const tabBtnStyle = (isActive) => ({ padding: '10px 20px', cursor: 'pointer', border: 'none', background: isActive ? '#007bff' : '#ddd', color: isActive ? '#fff' : '#000', borderRadius: '5px', marginRight:'5px' });
+  const smallBtnStyle = { padding: '5px 10px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' };
 
   // --- RENDER ---
   return (
@@ -138,42 +225,67 @@ const ProcedureDemoPage = () => {
         
         {activeTab === 'enroll' && (
           <div>
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'10px'}}>
-              <input placeholder="MSSV Mới (VD: 2023001)" value={enrollForm.id} onChange={e=>setEnrollForm({...enrollForm, id: e.target.value})} style={inputStyle}/>
-              <input placeholder="Họ tên" value={enrollForm.fullName} onChange={e=>setEnrollForm({...enrollForm, fullName: e.target.value})} style={inputStyle}/>
-              <input placeholder="Email" value={enrollForm.email} onChange={e=>setEnrollForm({...enrollForm, email: e.target.value})} style={inputStyle}/>
-              <input placeholder="Username" value={enrollForm.username} onChange={e=>setEnrollForm({...enrollForm, username: e.target.value})} style={inputStyle}/>
-              <input placeholder="Password" type="password" value={enrollForm.password} onChange={e=>setEnrollForm({...enrollForm, password: e.target.value})} style={inputStyle}/>
+            {/* PHẦN 1: THÔNG TIN SINH VIÊN */}
+            <h5 style={{marginBottom: '10px', borderBottom: '1px solid #ccc'}}>A. Thông tin Sinh viên</h5>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'10px', marginBottom: '15px'}}>
+              <input placeholder="MSSV Mới (VD: 3001)" value={studentInfoForm.id} onChange={e=>setStudentInfoForm({...studentInfoForm, id: e.target.value})} style={inputStyle}/>
+              <input placeholder="Họ tên" value={studentInfoForm.fullName} onChange={e=>setStudentInfoForm({...studentInfoForm, fullName: e.target.value})} style={inputStyle}/>
+              <input placeholder="Email" value={studentInfoForm.email} onChange={e=>setStudentInfoForm({...studentInfoForm, email: e.target.value})} style={inputStyle}/>
+              <input placeholder="Username" value={studentInfoForm.username} onChange={e=>setStudentInfoForm({...studentInfoForm, username: e.target.value})} style={inputStyle}/>
+              <input placeholder="Password" type="password" value={studentInfoForm.password} onChange={e=>setStudentInfoForm({...studentInfoForm, password: e.target.value})} style={inputStyle}/>
               
-              {/* Select Admin */}
-              <select value={enrollForm.adminId} onChange={e=>setEnrollForm({...enrollForm, adminId: e.target.value})} style={inputStyle}>
-                  <option value="">-- Chọn Admin Giám sát --</option>
+              <select value={studentInfoForm.adminId} onChange={e=>setStudentInfoForm({...studentInfoForm, adminId: e.target.value})} style={inputStyle}>
+                  <option value="">-- Admin Giám sát --</option>
                   {options.admins.map(a => <option key={a.id} value={a.id}>{a.name} ({a.id})</option>)}
               </select>
 
-              {/* Select Khoa */}
-              <select value={enrollForm.facultyId} onChange={e=>setEnrollForm({...enrollForm, facultyId: e.target.value})} style={inputStyle}>
+              <select value={studentInfoForm.facultyId} onChange={e=>setStudentInfoForm({...studentInfoForm, facultyId: e.target.value})} style={inputStyle}>
                   <option value="">-- Chọn Khoa --</option>
                   {options.faculties.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
               </select>
 
-              <input placeholder="Lớp SH (VD: L01)" value={enrollForm.className} onChange={e=>setEnrollForm({...enrollForm, className: e.target.value})} style={inputStyle}/>
-              
-              {/* Select Môn */}
-              <select value={enrollForm.subjectId} onChange={e=>setEnrollForm({...enrollForm, subjectId: e.target.value})} style={inputStyle}>
-                  <option value="">-- Chọn Môn Đăng ký --</option>
-                  {options.subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.id})</option>)}
-              </select>
+              <input placeholder="Lớp Sinh hoạt (VD: CNTT1)" value={studentInfoForm.className} onChange={e=>setStudentInfoForm({...studentInfoForm, className: e.target.value})} style={inputStyle}/>
+            </div>
 
-               {/* Select Học kì */}
-               <select value={enrollForm.semester} onChange={e=>setEnrollForm({...enrollForm, semester: e.target.value})} style={inputStyle}>
-                  <option value="">-- Chọn Học kỳ --</option>
+            {/* PHẦN 2: CHỌN CÁC LỚP HỌC PHẦN */}
+            <h5 style={{marginBottom: '10px', borderBottom: '1px solid #ccc'}}>B. Đăng ký Môn học (Thêm nhiều môn để tránh lỗi Trigger)</h5>
+            <div style={{display:'flex', gap:'10px', alignItems:'center', background: '#e9ecef', padding: '10px', borderRadius: '5px'}}>
+               <select value={currentClassInput.semester} onChange={e=>setCurrentClassInput({...currentClassInput, semester: e.target.value})} style={{...inputStyle, flex: 1}}>
+                  <option value="">-- Học kỳ --</option>
                   {options.semesters.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               
-              <input placeholder="Tên Lớp học phần (VD: L01)" value={enrollForm.enrollClass} onChange={e=>setEnrollForm({...enrollForm, enrollClass: e.target.value})} style={inputStyle}/>
+              <select value={currentClassInput.subjectId} onChange={e=>setCurrentClassInput({...currentClassInput, subjectId: e.target.value})} style={{...inputStyle, flex: 2}}>
+                  <option value="">-- Chọn Môn --</option>
+                  {options.subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.id})</option>)}
+              </select>
+
+              <input placeholder="Lớp HP (VD: L01)" value={currentClassInput.enrollClass} onChange={e=>setCurrentClassInput({...currentClassInput, enrollClass: e.target.value})} style={{...inputStyle, flex: 1}}/>
+              
+              <button onClick={handleAddClassToList} style={smallBtnStyle}>➕ Thêm môn</button>
             </div>
-            <button style={btnStyle} onClick={() => handleSubmit('enrollment/student', enrollForm)}>Thực thi SP Nhập Học</button>
+
+            {/* DANH SÁCH CÁC MÔN ĐÃ CHỌN */}
+            {addedClasses.length > 0 && (
+                <div style={{marginTop: '10px', background: '#fff', border: '1px solid #ddd', padding: '10px'}}>
+                    <strong>Danh sách môn sẽ đăng ký:</strong>
+                    <ul style={{marginTop: '5px', paddingLeft: '20px'}}>
+                        {addedClasses.map((cls, idx) => (
+                            <li key={idx} style={{marginBottom: '5px'}}>
+                                <b>{cls.semester}</b> - Môn ID: <b>{cls.subjectId}</b> - Lớp: <b>{cls.enrollClass}</b>
+                                <span 
+                                    onClick={() => handleRemoveClassFromList(idx)} 
+                                    style={{marginLeft: '10px', color: 'red', cursor: 'pointer', fontWeight: 'bold'}}
+                                >
+                                    (Xóa)
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            <button style={btnStyle} onClick={() => handleSubmit('enrollment/student', null)}>🚀 Thực thi SP Nhập Học (Batch Insert)</button>
           </div>
         )}
         
@@ -245,7 +357,7 @@ const ProcedureDemoPage = () => {
         )}
       </div>
 
-      {/* DATA VIEW TABLE (Giữ nguyên logic hiển thị) */}
+      {/* DATA VIEW TABLE */}
       <div style={{overflowX:'auto'}}>
         <table style={{width:'100%', borderCollapse:'collapse'}}>
             <thead>
@@ -259,7 +371,8 @@ const ProcedureDemoPage = () => {
                     <tr key={i} style={{borderBottom:'1px solid #ddd'}}>
                         {Object.values(row).map((v, j) => <td key={j} style={{padding:'8px'}}>{v}</td>)}
                         {activeTab === 'enroll' && (
-                            <td style={{padding:'8px'}}>
+                            <td style={{padding:'8px', display: 'flex'}}>
+                                <button onClick={()=>handleViewDetail(row)} style={{marginRight:'5px', cursor:'pointer', border:'none', background:'transparent', fontSize:'16px'}} title="Xem chi tiết">👁️</button>
                                 <button onClick={()=>handleEditClick(row)} style={{marginRight:'5px'}}>✏️</button>
                                 <button onClick={()=>handleDeleteUser(row.ID)} style={{color:'red'}}>🗑️</button>
                             </td>
@@ -270,7 +383,7 @@ const ProcedureDemoPage = () => {
         </table>
       </div>
       
-      {/* Modal Edit (Giữ nguyên logic) */}
+      {/* Modal Edit */}
       {isEditModalOpen && (
           <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.5)', display:'flex', justifyContent:'center', alignItems:'center'}}>
               <div style={{background:'white', padding:'20px', width:'300px'}}>
@@ -281,6 +394,63 @@ const ProcedureDemoPage = () => {
                   <button onClick={()=>setIsEditModalOpen(false)} style={{...btnStyle, background:'#6c757d', marginTop:'5px'}}>Cancel</button>
               </div>
           </div>
+      )}
+
+      {isViewModalOpen && viewStudentData && (
+        <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', display:'flex', justifyContent:'center', alignItems:'center', zIndex: 1000}}>
+            <div style={{background:'white', padding:'25px', width:'600px', borderRadius:'8px', maxHeight:'90vh', overflowY:'auto', boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #ddd', paddingBottom:'10px', marginBottom:'15px'}}>
+                    <h3 style={{margin:0, color:'#007bff'}}>📄 Hồ sơ Sinh viên</h3>
+                    <button onClick={()=>setIsViewModalOpen(false)} style={{background:'transparent', border:'none', fontSize:'20px', cursor:'pointer'}}>✖</button>
+                </div>
+
+                {/* Phần 1: Thông tin cá nhân */}
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'15px', marginBottom:'20px'}}>
+                    <div><strong>MSSV:</strong> {viewStudentData.ID}</div>
+                    <div><strong>Họ tên:</strong> {viewStudentData.Name || viewStudentData.FullName}</div>
+                    <div><strong>Email:</strong> {viewStudentData.Email}</div>
+                    <div><strong>Lớp SH:</strong> {viewStudentData.Class || 'N/A'}</div>
+                    <div><strong>Khoa:</strong> {viewStudentData.Faculty || 'N/A'}</div>
+                    <div><strong>Chương trình:</strong> {viewStudentData.Program || 'Chính quy'}</div>
+                </div>
+
+                {/* Phần 2: Danh sách môn học (Nếu có API trả về) */}
+                <h4 style={{borderBottom:'2px solid #28a745', paddingBottom:'5px', marginBottom:'10px'}}>📚 Lịch sử đăng ký môn học</h4>
+                
+                {studentEnrollments.length > 0 ? (
+                    <table style={{width:'100%', borderCollapse:'collapse', fontSize:'14px'}}>
+                        <thead>
+                            <tr style={{background:'#f8f9fa'}}>
+                                <th style={{border:'1px solid #ddd', padding:'8px'}}>Học kỳ</th>
+                                <th style={{border:'1px solid #ddd', padding:'8px'}}>Môn học</th>
+                                <th style={{border:'1px solid #ddd', padding:'8px'}}>Lớp HP</th>
+                                <th style={{border:'1px solid #ddd', padding:'8px'}}>Điểm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {studentEnrollments.map((enr, idx) => (
+                                <tr key={idx}>
+                                    <td style={{border:'1px solid #ddd', padding:'8px', textAlign:'center'}}>{enr.Semester || enr['Tên học kì']}</td>
+                                    <td style={{border:'1px solid #ddd', padding:'8px'}}>{enr.SubjectName || enr['Mã môn học']}</td>
+                                    <td style={{border:'1px solid #ddd', padding:'8px', textAlign:'center'}}>{enr.ClassName || enr['Tên lớp']}</td>
+                                    <td style={{border:'1px solid #ddd', padding:'8px', textAlign:'center', fontWeight:'bold'}}>
+                                        {enr.Grade !== null ? enr.Grade : <span style={{color:'gray'}}>--</span>}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p style={{fontStyle:'italic', color:'#666', textAlign:'center', padding:'20px', background:'#f1f1f1'}}>
+                        Chưa có dữ liệu môn học hoặc chưa kết nối API chi tiết.
+                    </p>
+                )}
+
+                <div style={{textAlign:'right', marginTop:'20px'}}>
+                    <button onClick={()=>setIsViewModalOpen(false)} style={{padding:'10px 20px', background:'#6c757d', color:'white', border:'none', borderRadius:'4px', cursor:'pointer'}}>Đóng</button>
+                </div>
+            </div>
+        </div>
       )}
     </div>
   );
